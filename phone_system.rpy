@@ -1,418 +1,908 @@
 # =========================================
-# PHONE SYSTEM - REN'PY
-# Coloque em: game/phone_system.rpy
+# PHONE SYSTEM COMPLETO - REN'PY
 # =========================================
 
-# -----------------------------------------
+
+
+init python:
+    
+    import renpy.store as store
+
+# =========================================
 # IMAGENS
-# -----------------------------------------
+# =========================================
 
-image phone_frame = "images/ui/phone_frame.png"
+image sms_icon = "images/ui/sms.png"
+image lock_icon = "images/ui/lock.png"
 
-# Ícones
-image app_whatsapp = "images/ui/whatsapp_icon.png"
-image phone_icon_small = "images/ui/phone_small_icon.png"
+image phone_home_bg = "images/ui/celular.png"
+image phone_contacts_bg = "images/ui/contatos.png"
+image phone_chat_bg = "images/ui/celularsmsfundo.png"
 
-# -----------------------------------------
-# DADOS
-# -----------------------------------------
+image bubble_npc = "images/ui/bubble_white.png"
+image bubble_player = "images/ui/bubble_blue.png"
 
-default archived_unlocked = False
+image back_icon = "images/ui/back_button.png"
+image info_icon = "images/ui/info_button.png"
+image send_disabled = "images/ui/send_button_disabled.png"
 
-default archive_password = "1998"
+image jinsei_avatar = "images/ui/fotos_contatos/jinsei_contato.png"
 
-default current_contacts = ["Jinsei", "Arquivado"]
+# =========================================
+# VARIÁVEIS
+# =========================================
 
-default archived_contacts = [
-    "Akemi",
-    "Unknown",
-    "Mãe"
-]
+default editing_contact_name = False
 
-# Conversas
+default temp_contact_name = ""
+
+default contact_display_names = {
+    "Jinsei": "Jinsei",
+}
+
+default contact_avatars = {
+    "Jinsei": "images/ui/fotos_contatos/jinsei_contato.png",
+    "Estella": "images/ui/fotos_contatos/estella_contato.png"
+}
+
+default player_typing_active = False
+default player_typing_contact = None
+default player_typing_target = ""
+default player_typing_shown = ""
+default player_typing_label = None
+
+default typing_contact = None
+default typing_active = False
+
+default current_game_date = "2026-04-28"
+
+default phone_open = False
+default phone_screen = "home"
+
+default archive_password = "0504"
+default archive_input = ""
+default archive_unlocked = False
+
+default phone_notify_active = False
+default phone_notify_sender = ""
+default phone_notify_text = ""
+
+default unlocked_contacts = ["Jinsei"]
+
+default archived_contacts = ["Akemi", "Unknown", "Mãe"]
+
+default current_chat = None
+
+default phone_choices = {
+    "estella_novo_contato": [
+        {
+            "text": "Quem é?",
+            "label": "reply_estella_novo1"
+        },
+        {
+            "text": "Sim, é meu número.",
+            "label": "reply_estella_novo2"
+        }
+    ]
+
+
+}
+
 default chats = {
-
     "Jinsei": [
-        ("Jinsei", "Você chegou em casa?"),
-        ("Player", "Sim."),
-        ("Jinsei", "Tome cuidado hoje.")
+        {"sender": "Jinsei", "text": "Você chegou em casa?", "date": "2026-04-27", "time": "17:30"},
+        {"sender": "Player", "text": "Agora sim.", "date": "2026-04-27", "time": "18:00"},
     ],
 
     "Akemi": [
-        ("Akemi", "Você prometeu esquecer isso."),
-        ("Player", "Eu tentei.")
+        {"sender": "Akemi", "text": "Você prometeu esquecer isso."},
+        {"sender": "Player", "text": "Eu tentei."}
     ],
 
     "Unknown": [
-        ("Unknown", "ELE ESTÁ OBSERVANDO."),
+        {"sender": "Unknown", "text": "ELE ESTÁ OBSERVANDO."}
     ],
 
     "Mãe": [
-        ("Mãe", "Me liga quando puder.")
+        {"sender": "Mãe", "text": "Me liga quando puder."}
     ]
 }
 
-# -----------------------------------------
-# ANIMAÇÕES
-# -----------------------------------------
+default pending_choices = {}
 
-transform phone_open:
+# =========================================
+# TRANSFORMS
+# =========================================
 
-    zoom 0.0
-    alpha 0.0
+transform phone_home_transform:
+    xalign 0.5
+    yalign 0.5
+    zoom 0.58
+    xoffset 0
+    yoffset 0
 
-    ease 0.25 zoom 1.0 alpha 1.0
+transform phone_contacts_transform:
+    xalign 0.5
+    yalign 0.5
+    zoom 0.58
+    xoffset 0
+    yoffset 0
 
-transform app_hover:
-    zoom 1.0
+transform phone_chat_transform:
+    xalign 0.5
+    yalign 0.5
+    zoom 0.58
+    xoffset 0
+    yoffset 0
 
-    on hover:
-        ease 0.15 zoom 1.1
+transform phone_icon_idle:
+    zoom 0.08
+    xalign 0.98
+    yalign 0.03
 
-    on idle:
-        ease 0.15 zoom 1.0
+transform phone_center:
+    xalign 0.5
+    yalign 0.5
+    zoom 0.58
 
-# -----------------------------------------
-# ÍCONE SUPERIOR DIREITO
-# -----------------------------------------
+transform phone_icon_shake:
+    zoom 0.08
+    xalign 0.98
+    yalign 0.03
+    linear 0.05 xoffset -6
+    linear 0.05 xoffset 6
+    linear 0.05 xoffset -6
+    linear 0.05 xoffset 6
+    linear 0.05 xoffset 0
+    repeat
 
-screen phone_hud():
+transform notif_slide:
+    xalign 0.5
+    yalign -0.2
+    linear 0.35 yalign 0.05
+    pause 2.5
+    linear 0.35 yalign -0.2
+
+transform dot_wave(delay=0.0):
+    alpha 0.3
+    yoffset 0
+    pause delay
+    block:
+        linear 0.25 alpha 1.0 yoffset -8
+        linear 0.25 alpha 0.3 yoffset 0
+        pause 0.25
+        repeat
+
+# =========================================
+# FUNÇÕES
+# =========================================
+
+init python:
+
+    typing_key_list = [
+        "K_a","K_b","K_c","K_d","K_e","K_f","K_g","K_h","K_i","K_j","K_k","K_l","K_m",
+        "K_n","K_o","K_p","K_q","K_r","K_s","K_t","K_u","K_v","K_w","K_x","K_y","K_z",
+        "K_0","K_1","K_2","K_3","K_4","K_5","K_6","K_7","K_8","K_9",
+        "K_SPACE","K_RETURN","K_BACKSPACE"
+    ]
+
+    def begin_player_typing(contact, text, label_name):
+        store.player_typing_active = True
+        store.player_typing_contact = contact
+        store.player_typing_target = text
+        store.player_typing_shown = ""
+        store.player_typing_label = label_name
+        renpy.restart_interaction()
+
+    def player_type_next_char():
+        if store.player_typing_active:
+            current_len = len(store.player_typing_shown)
+            target_len = len(store.player_typing_target)
+
+            if current_len < target_len:
+                store.player_typing_shown = store.player_typing_target[:current_len + 1]
+
+        renpy.restart_interaction()
+
+    def finish_player_typing():
+        store.player_typing_active = False
+        store.player_typing_contact = None
+        store.player_typing_target = ""
+        store.player_typing_shown = ""
+        store.player_typing_label = None
+        renpy.restart_interaction()
+
+init python:
+
+    def unlock_contact(name):
+        if name not in store.unlocked_contacts:
+            store.unlocked_contacts.append(name)
+
+    def add_message(contact, sender, text, date=None, time=None):
+        if contact not in store.chats:
+            store.chats[contact] = []
+        if date is None:
+            date = store.current_game_date
+        if time is None:
+            time = ""
+        store.chats[contact].append({
+            "sender": sender,
+            "text": text,
+            "date": date,
+            "time": time
+        })
+
+    import datetime
+
+    def format_chat_date(date_text):
+        months = {
+            1: "janeiro",
+            2: "fevereiro",
+            3: "março",
+            4: "abril",
+            5: "maio",
+            6: "junho",
+            7: "julho",
+            8: "agosto",
+            9: "setembro",
+            10: "outubro",
+            11: "novembro",
+            12: "dezembro"
+        }
+
+        msg_date = datetime.datetime.strptime(date_text, "%Y-%m-%d").date()
+        today = datetime.datetime.strptime(store.current_game_date, "%Y-%m-%d").date()
+
+        if msg_date == today:
+            return "Hoje"
+
+        if msg_date == today - datetime.timedelta(days=1):
+            return "Ontem"
+
+        if msg_date.year == today.year:
+            return "%d de %s" % (msg_date.day, months[msg_date.month])
+
+        return "%d de %s de %d" % (msg_date.day, months[msg_date.month], msg_date.year) 
+
+    def get_contact_name(contact):
+        return store.contact_display_names.get(contact, contact)
+
+    def get_contact_avatar(contact):
+        return store.contact_avatars.get(contact, "images/ui/fotos_contatos/default.png")
+
+    def register_contact(contact_id, display_name="???", avatar_file="default.png"):
+        if contact_id not in store.unlocked_contacts:
+            store.unlocked_contacts.append(contact_id)
+
+        if contact_id not in store.chats:
+            store.chats[contact_id] = []
+
+        if contact_id not in store.contact_display_names:
+            store.contact_display_names[contact_id] = display_name
+
+        if contact_id not in store.contact_avatars:
+            store.contact_avatars[contact_id] = "images/ui/fotos_contatos/" + avatar_file
+
+    def receive_unknown_message(contact_id, text, avatar_file="default.png"):
+        register_contact(contact_id, "???", avatar_file)
+
+        add_message(contact_id, contact_id, text)
+
+        store.phone_notify_active = True
+        store.phone_notify_sender = "???"
+        store.phone_notify_text = text
+
+        renpy.restart_interaction()
+
+    def receive_message(contact_id, text):
+        register_contact(contact_id, get_contact_name(contact_id), "default.png")
+
+        add_message(contact_id, contact_id, text)
+
+        store.phone_notify_active = True
+        store.phone_notify_sender = get_contact_name(contact_id)
+        store.phone_notify_text = text
+
+        renpy.restart_interaction()
+
+    def clear_notification():
+        store.phone_notify_active = False
+        store.phone_notify_sender = ""
+        store.phone_notify_text = ""
+        renpy.restart_interaction()
+
+    def set_pending_choice(contact, choice_id):
+        store.pending_choices[contact] = choice_id
+
+# =========================================
+# ÍCONE GLOBAL DO CELULAR
+# =========================================
+
+screen phone_button():
 
     zorder 100
 
-    imagebutton:
+    if phone_notify_active:
+        imagebutton:
+            idle "images/ui/celular.png"
+            hover "images/ui/celular.png"
+            action [
+                SetVariable("phone_open", True),
+                SetVariable("phone_screen", "home"),
+                Function(clear_notification)
+            ]
+            at phone_icon_shake
+    else:
+        imagebutton:
+            idle "images/ui/celular.png"
+            hover "images/ui/celular.png"
+            action [
+                SetVariable("phone_open", True),
+                SetVariable("phone_screen", "home")
+            ]
+            at phone_icon_idle
 
-        idle "phone_small_icon.png"
-        hover "phone_small_icon.png"
+# =========================================
+# NOTIFICAÇÃO
+# =========================================
 
-        xpos 1750
-        ypos 30
+screen phone_notification():
 
-        at app_hover
+    zorder 101
 
-        action Show("phone_home")
+    if phone_notify_active:
 
-# -----------------------------------------
-# TELA INICIAL DO CELULAR
-# -----------------------------------------
+        frame:
+            at notif_slide
+            xsize 520
+            ysize 95
+            background "#111d"
+            padding (20, 12)
+
+            vbox:
+                spacing 5
+
+                text "[phone_notify_sender] enviou uma mensagem" size 24 color "#ffffff"
+                text "[phone_notify_text]" size 18 color "#cccccc"
+
+# =========================================
+# CELULAR PRINCIPAL
+# =========================================
+
+screen phone_system():
+
+    zorder 200
+
+    if phone_open:
+
+        modal True
+
+        button:
+            background "#0000"
+            xfill True
+            yfill True
+            action NullAction()
+
+        # TROCA AUTOMÁTICA DO FRAME
+        if phone_screen == "chat":
+            add "phone_chat_bg" at phone_chat_transform
+
+        elif phone_screen == "sms" or phone_screen == "archive_list" or phone_screen == "archive_password":
+            add "phone_contacts_bg" at phone_contacts_transform
+
+        else:
+            add "phone_home_bg" at phone_home_transform
+
+        frame:
+            background None
+            xalign 0.5
+            yalign 0.5
+            xsize 390
+            ysize 720
+
+            if phone_screen == "home":
+                use phone_home
+
+            elif phone_screen == "sms":
+                use phone_sms_main
+
+            elif phone_screen == "chat":
+                use phone_chat
+
+            elif phone_screen == "archive_password":
+                use phone_archive_password
+
+            elif phone_screen == "archive_list":
+                use phone_archive_list
+
+# =========================================
+# HOME DO CELULAR
+# =========================================
 
 screen phone_home():
 
-    modal True
-    zorder 200
+    fixed:
 
-    add "phone_frame" at phone_open:
-        xalign 0.5
-        yalign 0.5
+        textbutton "X":
+            xpos 300
+            ypos 62
+            text_size 28
+            text_color "#ffffff"
+            background None
+            hover_background None
+            action SetVariable("phone_open", False)
+
+        vbox:
+            xpos 62
+            ypos 105
+            spacing 4
+
+            imagebutton:
+                idle "sms_icon"
+                hover "sms_icon"
+                xysize (44, 44)
+                action SetVariable("phone_screen", "sms")
+
+            text "SMS" size 18 color "#ffffff" xalign 0.5
+
+        fixed:
+            xpos 250
+            ypos 98
+
+            imagebutton:
+                idle Transform("images/ui/lock.png", xysize=(38, 38))
+                hover Transform("images/ui/lock.png", xysize=(38, 38))
+                action SetVariable("phone_screen", "archive_password")
+# =========================================
+# TELA PRINCIPAL SMS
+# =========================================
+
+screen phone_sms_main():
 
     fixed:
 
-        xalign 0.5
-        yalign 0.5
-
-        xsize 600
-        ysize 1100
-
-        # Fundo da tela do celular
-        frame:
-
-            background "#101820"
-
-            xsize 500
-            ysize 950
-
-            xpos 50
-            ypos 70
-
-        # Ícone do whatsapp
         imagebutton:
+            idle "back_icon"
+            hover "back_icon"
+            xpos 32
+            ypos 38
+            xysize (30, 30)
+            action SetVariable("phone_screen", "home")
 
-            idle "app_whatsapp"
-            hover "app_whatsapp"
-
-            xpos 100
-            ypos 150
-
-            at app_hover
-
-            action Show("whatsapp_contacts")
-
-        text "WhatsApp":
-            color "#FFFFFF"
-            size 25
-
-            xpos 95
-            ypos 260
-
-    # Fechar celular clicando fora
-    textbutton "X":
-
-        xpos 1250
-        ypos 120
-
-        action Hide("phone_home")
-
-# -----------------------------------------
-# CONTATOS
-# -----------------------------------------
-
-screen whatsapp_contacts():
-
-    modal True
-    zorder 300
-
-    add "phone_frame":
-
-        xalign 0.5
-        yalign 0.5
-
-    frame:
-
-        background "#0B141A"
-
-        xalign 0.5
-        yalign 0.5
-
-        xsize 500
-        ysize 950
-
-        vbox:
-
-            spacing 15
-            xpos 20
-            ypos 20
-
-            text "Conversas":
-                color "#FFFFFF"
-                size 40
-
-            # CONTATOS NORMAIS
-            for contact in current_contacts:
-
-                if contact != "Arquivado":
-
-                    textbutton contact:
-
-                        xsize 440
-                        ysize 70
-
-                        action Show("chat_screen", contato=contact)
-
-                else:
-
-                    textbutton "📁 Arquivado":
-
-                        xsize 440
-                        ysize 70
-
-                        action Show("archive_password_screen")
-
-    textbutton "←":
-
-        xpos 730
-        ypos 120
-
-        action Hide("whatsapp_contacts")
-
-# -----------------------------------------
-# SENHA DOS ARQUIVADOS
-# -----------------------------------------
-
-screen archive_password_screen():
-
-    modal True
-    zorder 400
-
-    default password_input = ""
-
-    frame:
-
-        background "#202C33"
-
-        xalign 0.5
-        yalign 0.5
-
-        xsize 400
-        ysize 300
-
-        vbox:
-
-            spacing 20
-
+        text "CONTATOS":
             xalign 0.5
-            yalign 0.5
+            ypos 50
+            size 20
+            color "#d9d9d9"
+            bold True
 
-            text "Digite a senha":
-                color "#FFFFFF"
-                size 35
+        viewport:
+            xpos 38
+            ypos 115
+            xsize 315
+            ysize 470
+            draggable True
+            mousewheel True
 
-            input:
+            vbox:
+                spacing 6
 
-                default ""
-                value ScreenVariableInputValue("password_input")
+                for contact in unlocked_contacts:
 
-                length 20
+                    button:
+                        xsize 315
+                        ysize 76
+                        background "#00000000"
+                        hover_background "#ffffff18"
+                        action [
+                            SetVariable("current_chat", contact),
+                            SetVariable("phone_screen", "chat")
+                        ]
 
-            textbutton "Confirmar":
+                        hbox:
+                            spacing 12
+                            yalign 0.5
 
-                action If(
-                    password_input == archive_password,
+                            add get_contact_avatar(contact) xysize (54, 54)
 
-                    [
-                        SetVariable("archived_unlocked", True),
-                        Hide("archive_password_screen"),
-                        Show("archived_contacts_screen")
-                    ],
+                            vbox:
+                                yalign 0.5
+                                spacing 3
 
-                    Notify("Senha incorreta.")
-                )
+                                text get_contact_name(contact) size 22 color "#ffffff"
 
-# -----------------------------------------
-# CONTATOS ARQUIVADOS
-# -----------------------------------------
+                                if len(chats.get(contact, [])) > 0:
+                                    text chats[contact][-1]["text"]:
+                                        size 14
+                                        color "#aaaaaa"
+                                        xmaximum 210
 
-screen archived_contacts_screen():
+# =========================================
+# SENHA DOS ARQUIVADOS
+# =========================================
 
-    modal True
-    zorder 500
+screen phone_archive_password():
 
-    add "phone_frame":
+    fixed:
 
-        xalign 0.5
-        yalign 0.5
+        imagebutton:
+            idle "back_icon"
+            hover "back_icon"
+            xpos 32
+            ypos 38
+            xysize (30, 30)
+            action SetVariable("phone_screen", "home")
 
-    frame:
+        text "Digite a senha:":
+            xalign 0.5
+            ypos 88
+            size 28
+            color "#ffffff"
 
-        background "#111B21"
+        text "[archive_input]":
+            xalign 0.5
+            ypos 142
+            size 34
+            color "#7BE0FF"
 
-        xalign 0.5
-        yalign 0.5
+        grid 3 4:
+            xpos 72
+            ypos 220
+            spacing 28
 
-        xsize 500
-        ysize 950
+            for n in ["1","2","3","4","5","6","7","8","9","DEL","0","OK"]:
 
-        vbox:
+                textbutton n:
+                    xsize 58
+                    ysize 58
+                    background None
+                    text_size 28
+                    text_color "#ffffff"
+                    text_hover_color "#7BE0FF"
 
-            spacing 15
+                    if n == "DEL":
+                        action SetVariable("archive_input", archive_input[:-1])
 
-            xpos 20
-            ypos 20
-
-            text "Arquivados":
-                color "#FFFFFF"
-                size 40
-
-            for contact in archived_contacts:
-
-                textbutton contact:
-
-                    xsize 440
-                    ysize 70
-
-                    action Show("chat_screen", contato=contact)
-
-    textbutton "←":
-
-        xpos 730
-        ypos 120
-
-        action Hide("archived_contacts_screen")
-
-# -----------------------------------------
-# CHAT
-# -----------------------------------------
-
-screen chat_screen(contato):
-
-    modal True
-    zorder 600
-
-    add "phone_frame":
-
-        xalign 0.5
-        yalign 0.5
-
-    frame:
-
-        background "#0B141A"
-
-        xalign 0.5
-        yalign 0.5
-
-        xsize 500
-        ysize 950
-
-        vbox:
-
-            spacing 10
-
-            xpos 15
-            ypos 15
-
-            text "[contato]":
-                color "#FFFFFF"
-                size 35
-
-            viewport:
-
-                draggable True
-                mousewheel True
-
-                ysize 780
-
-                vbox:
-
-                    spacing 15
-
-                    for sender, msg in chats[contato]:
-
-                        if sender == "Player":
-
-                            frame:
-
-                                background "#005C4B"
-
-                                xalign 1.0
-                                xmaximum 350
-
-                                padding (15,10)
-
-                                text "[msg]":
-                                    color "#FFFFFF"
-
+                    elif n == "OK":
+                        if archive_input == archive_password:
+                            action [
+                                SetVariable("archive_unlocked", True),
+                                SetVariable("archive_input", ""),
+                                SetVariable("phone_screen", "archive_list")
+                            ]
                         else:
+                            action SetVariable("archive_input", "")
 
-                            frame:
+                    else:
+                        if len(archive_input) < 4:
+                            action SetVariable("archive_input", archive_input + n)
+                        else:
+                            action NullAction()
+# =========================================
+# LISTA DE ARQUIVADOS
+# =========================================
 
-                                background "#202C33"
+screen phone_archive_list():
 
-                                xalign 0.0
-                                xmaximum 350
+    fixed:
 
-                                padding (15,10)
+        imagebutton:
+            idle "back_icon"
+            hover "back_icon"
+            xpos 32
+            ypos 38
+            xysize (30, 30)
+            action SetVariable("phone_screen", "home")
 
-                                text "[msg]":
-                                    color "#FFFFFF"
+        viewport:
+            xpos 38
+            ypos 115
+            xsize 315
+            ysize 470
+            draggable True
+            mousewheel True
 
-    textbutton "←":
+            vbox:
+                spacing 6
 
-        xpos 730
-        ypos 120
+                for contact in archived_contacts:
 
-        action Hide("chat_screen")
+                    button:
+                        xsize 315
+                        ysize 76
+                        background "#00000000"
+                        hover_background "#ffffff18"
+                        action [
+                            SetVariable("current_chat", contact),
+                            SetVariable("phone_screen", "chat")
+                        ]
 
-# -----------------------------------------
-# INÍCIO
-# -----------------------------------------
+                        hbox:
+                            spacing 12
+                            yalign 0.5
 
-label start:
+                            add "lock_icon" xysize (48, 48)
 
-    show screen phone_hud
+                            vbox:
+                                yalign 0.5
+                                spacing 3
 
-    scene black
+                                text contact_display_names[contact] size 22 color "#ffffff"
 
-    "O celular agora pode ser aberto pelo ícone superior direito."
+                                if len(chats.get(contact, [])) > 0:
+                                    text chats[contact][-1]["text"] size 14 color "#aaaaaa" xmaximum 220
 
-    "Teste o WhatsApp."
+# =========================================
+# TELA DE CONVERSA
+# =========================================
+
+screen phone_chat():
+
+    fixed:
+
+        imagebutton:
+            idle "back_icon"
+            hover "back_icon"
+            xpos 32
+            ypos 38
+            xysize (30, 30)
+
+            if current_chat in archived_contacts:
+                action SetVariable("phone_screen", "archive_list")
+            else:
+                action SetVariable("phone_screen", "sms")
+
+        imagebutton:
+            idle "info_icon"
+            hover "info_icon"
+            xpos 295
+            ypos 35
+            xysize (28, 28)
+            action [
+                SetVariable("editing_contact_name", True),
+                SetVariable("temp_contact_name", get_contact_name(current_chat))
+            ]
+
+        text "[get_contact_name(current_chat)]":
+            xalign 0.5
+            ypos 48
+            size 26
+            color "#ffffff"
+
+        viewport:
+            xpos 35
+            ypos 115
+            xsize 320
+            ysize 455
+            draggable True
+            mousewheel True
+
+            vbox:
+                spacing 10
+
+                $ last_date = None
+
+                for msg in chats.get(current_chat, []):
+
+                    if msg.get("date", current_game_date) != last_date:
+
+                        $ last_date = msg.get("date", current_game_date)
+
+                        frame:
+                            xalign 0.5
+                            background "#000000aa"
+                            padding (10, 4)
+
+                            text format_chat_date(last_date) size 12 color "#ffffff"
+
+                    if msg["sender"] == "Player":
+
+                        fixed:
+                            xsize 320
+                            ysize 62
+
+                            add "bubble_player":
+                                xpos 70
+                                ypos 0
+                                xysize (250, 60)
+
+                            text msg["text"]:
+                                xpos 102
+                                ypos 13
+                                xmaximum 165
+                                size 14
+                                color "#ffffff"
+
+                            if msg.get("time", "") != "":
+                                text msg["time"]:
+                                    xpos 280
+                                    ypos 34
+                                    size 9
+                                    color "#dceeff"
+
+                    else:
+
+                        fixed:
+                            xsize 320
+                            ysize 62
+
+                            add "bubble_npc":
+                                xpos 0
+                                ypos 0
+                                xysize (250, 60)
+
+                            text msg["text"]:
+                                xpos 32
+                                ypos 13
+                                xmaximum 165
+                                size 14
+                                color "#111111"
+
+                            if msg.get("time", "") != "":
+                                text msg["time"]:
+                                    xpos 195
+                                    ypos 34
+                                    size 9
+                                    color "#666666"
+
+                if typing_active and typing_contact == current_chat:
+
+                    fixed:
+                        xsize 320
+                        ysize 62
+
+                        add "bubble_npc":
+                            xpos 0
+                            ypos 0
+                            xysize (250, 60)
+
+                        hbox:
+                            xpos 42
+                            ypos 21
+                            spacing 7
+
+                            text "●" size 14 color "#111111" at dot_wave(0.0)
+                            text "●" size 14 color "#111111" at dot_wave(0.15)
+                            text "●" size 14 color "#111111" at dot_wave(0.30)
+
+        if current_chat in pending_choices:
+
+            vbox:
+                xpos 52
+                ypos 585
+                spacing 6
+
+                $ choice_id = pending_choices[current_chat]
+
+                if choice_id in phone_choices:
+
+                    for option in phone_choices[choice_id]:
+
+                        textbutton option["text"]:
+                            xsize 285
+                            ysize 30
+                            action Call(option["label"])
+
+    if editing_contact_name:
+
+        frame:
+            xpos 58
+            ypos 170
+            xsize 240
+            ysize 170
+
+            background "#111111ee"
+            padding (18, 18)
+
+            vbox:
+                spacing 10
+                xalign 0.5
+                yalign 0.5
+
+                if current_chat == "jinsei":
+                    add "jinsei_avatar":
+                        xalign 0.5
+                        xysize (70, 70)
+
+                text "Alterar nome":
+                    xalign 0.5
+                    size 20
+                    color "#ffffff"
+
+                input:
+                    value VariableInputValue("temp_contact_name")
+                    length 18
+                    color "#ffffff"
+                    size 20
+                    xalign 0.5
+                    xmaximum 180
+
+                textbutton "Confirmar":
+                    xalign 0.5
+                    action [
+                        SetDict(contact_display_names, current_chat, temp_contact_name),
+                        SetVariable("editing_contact_name", False),
+                        SetVariable("temp_contact_name", "")
+                    ]
+
+    add "send_disabled":
+        xpos 288
+        ypos 615
+        xysize (50, 50)
+
+
+# =========================================
+# LABELS DE RESPOSTA
+# =========================================
+
+
+label reply_estella_novo1:
+
+    $ add_message("Estella", "Player", "Olá, é sim. Quem seria?")
+    $ pending_choices.pop("Estella", None)
+
+    $typing_contact = "Estella"
+    $typing_active = True
+    $ renpy.restart_interaction()
+
+    pause 1.5
+
+    $ typing_active = False
+    $ add_message("Estella", "Estella", "Ai que bom! Achei que você tinha passado o número errado hahaha")
+    $ renpy.restart_interaction()
+
+    call estella_primeiraconversa
 
     return
+
+label reply_estella_novo2:
+    $ add_message("Estella", "Player", "Sim, é meu número.")
+    $ pending_choices.pop("Estella", None)
+
+    $ typing_contact = "Estella"
+    $ typing_active = True
+    $ renpy.restart_interaction()
+
+    pause 1.5
+
+    $ typing_active = False
+    $ add_message("Estella", "Estella", "Ah que bom! Sou eu a Estella, você me passou seu número se lembra?")
+    $ renpy.restart_interaction()
+
+    call estella_primeiraconversa
+
+    return
+
+label estella_primeiraconversa:
+    $ typing_contact = "Estella"
+    $ typing_active = True
+    $ renpy.restart_interaction()
+
+    pause 1.5
+
+    $ typing_active = False
+    if consequência_ativada["ajudar_stella_chave"] == True:
+        $ add_message("Estella", "Estella", "Você tinha me pedido para te mandar mensagem quando chegasse em casa.")
+        $ renpy.restart_interaction()
+
+        pause 0.5
+
+        $ typing_contact = "Estella"
+        $ typing_active = True
+        $ renpy.restart_interaction()
+
+        pause 1.5
+
+        $ typing_active = False
+        $ add_message("Estella", "Estella", "Eu acabei de chegar em casa, e queria saber se você consegue me ajudar a procura-la agora?")
+        $ set_pending_choice("Estella", "estella_escolha_02")
+        $ renpy.restart_interaction()
+
+        return
+
+
+
+
+# =========================================
+# EXEMPLOS DE USO DURANTE O JOGO
+# =========================================

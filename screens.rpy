@@ -314,6 +314,7 @@ style quick_button_text:
 
 screen navigation():
     vbox:
+
         style_prefix "navigation"
 
         xpos gui.navigation_xpos
@@ -331,6 +332,8 @@ screen navigation():
             # textbutton _("Salvar") action ShowMenu("save")
 
         textbutton _("Continuar") action ShowMenu("load")
+
+        textbutton _("Capítulos") action ShowMenu("chapter_select")
 
         textbutton _("Preferências") action ShowMenu("preferences")
 

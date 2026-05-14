@@ -31,6 +31,8 @@ label Capítulo_1:
 
     scene Quarto1
     with pixellate
+
+
     
     # Restaura o volume da música para 100%
         
@@ -181,6 +183,9 @@ label prova:
     k "{cps=40}{i}A única que sempre me apoiou e ficou do meu lado nesses últimos 10 anos foi a Jinsei.{/i}{/cps}"
     k "{cps=40}{i}Acho que é por isso que me sinto a vontade com ela por perto, e as vezes até sorrio por impulso.{/i}{/cps}"
     k "{cps=40}{i}Ta não vamo enrolar, ja é 8 horas e 15, o trêm chega as 8 e 40, tenho 15 minutos pra sair de casa.{/i}{/cps}"
+
+    $ receive_message("Jinsei", "Ei, não esquece da prova hoje.")
+    $ set_pending_choice("Jinsei", "jinsei_teste_prova")
 
     k "{cps=40}{i}Eu posso fazer duas coisas só, e agora o que eu faço velho, me perdi no tempo conversando com a Jinsei.{/i}{/cps}"
 
@@ -475,21 +480,24 @@ label investigarbarulho:
                     k normal "{cps=40}\"Você falou que tinha perdido a sua chave né?{/cps}\""
                     hide Stella feliz
                     show Stella feliz2
-                    default conversa_stella = [
-
-                        ("Stella", "feliz2", "s", "{cps=40}\"Sim, eu não faço ideia de onde eu perdi...{/cps}\""),
-
-                        ("Kioku", "feliz", "k", "{cps=40}\"Ah, eu posso te ajudar depois que eu voltar da faculdade.{/cps}\""),
-
-                        ("Stella", "feliz2", "s", "{cps=40}\"Sério mesmo?{/cps}\""),
-
-                        ("Kioku", "feliz", "k", "{cps=40}\"Claro, eu não tenho nada pra fazer hoje a tarde mesmo, posso te ajudar a procurar.{/cps}\""),
-
-                        ("Stella", "happy2", "s", "{cps=40}\"Nossa, muito obrigada Kioku...{/cps}\""),
-
-                        ("Stella", "envergonhada", "s", "{cps=40}\"Me sinto mal por ter perdido, acabei de chegar e ja fiz merda hahaha.{/cps}\"")
-                    ]
-                    mostrar_dialogo(conversa_stella)
+                    s feliz2 "{cps=40}\"Sim, eu não faço ideia de onde eu perdi...{/cps}\""
+                    hide Stella feliz2
+                    show Stella feliz
+                    k feliz "{cps=40}\"Ah, eu posso te ajudar depois que eu voltar da faculdade.{/cps}\""
+                    hide Stella feliz
+                    show Stella feliz2
+                    s feliz2 "{cps=40}\"Sério mesmo?{/cps}\""
+                    hide Stella feliz2
+                    show Stella feliz
+                    k feliz "{cps=40}\"Claro, eu não tenho nada pra fazer hoje a tarde mesmo, posso te ajudar a procurar.{/cps}\""
+                    hide Stella feliz
+                    show Stella happy2
+                    s happy2 "{cps=40}\"Nossa, muito obrigada Kioku...{/cps}\""
+                    hide Stella happy2
+                    show Stella envergonhada
+                    s envergonhada "{cps=40}\"Me sinto mal por ter perdido, acabei de chegar e ja fiz merda hahaha.{/cps}\""
+                    hide Stella envergonhada
+                    show Stella feliz
                     k feliz "{cps=40}\"Não se preocupa com isso, acontece, eu mesmo já perdi chaves antes...{/cps}\""
                     hide Stella feliz
                     show Stella envergonhada
@@ -507,28 +515,12 @@ label investigarbarulho:
                             hide Stella feliz
                             show Stella feliz2
                             s feliz2 "{cps=40}\"Ah sim, pode ser assim então...{/cps}\""
+                            
 
-
-                        "Indicar o porteiro":
-                
+                        #"Indicar o porteiro":          
         
         #"Se despedir":
 
-
-init python:
-
-    def mostrar_dialogo(dialogos):
-
-        for sprite, personagem, texto in dialogos:
-
-            # Esconde sprite anterior
-            renpy.hide("Stella")
-
-            # Mostra novo sprite
-            renpy.show(sprite)
-
-            # Exibe fala
-            renpy.say(personagem, texto)
 
 label fimdemosecreto:
     stop music fadeout 1.0

@@ -947,6 +947,10 @@ image minguaufeliz = "fuff_smug.png"
 
 label start:
 
+
+    show screen phone_button
+    show screen phone_notification
+    show screen phone_system
     # Ensure the attribute system is initialized for a new game.
     $ init_atributos()
     if not persistent.atributos_confirmed:
@@ -967,7 +971,9 @@ label start:
 
 
 label escolhamodo:
+    $ receive_unknown_message("Estella", "Oi... esse é seu número?", "estella_contato.png")
     "{cps=40}Antes de começarmos, por favor escolha o modo de jogo:{/cps}"
+
     jump modojogo
 
 label modojogo:
