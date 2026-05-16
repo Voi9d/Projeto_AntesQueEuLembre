@@ -19,14 +19,23 @@ image phone_home_bg = "images/ui/celular.png"
 image phone_contacts_bg = "images/ui/contatos.png"
 image phone_chat_bg = "images/ui/celularsmsfundo.png"
 
-image bubble_npc = "images/ui/bubble_white.png"
-image bubble_player = "images/ui/bubble_blue.png"
-
 image back_icon = "images/ui/back_button.png"
 image info_icon = "images/ui/info_button.png"
 image send_disabled = "images/ui/send_button_disabled.png"
 
 image jinsei_avatar = "images/ui/fotos_contatos/jinsei_contato.png"
+
+style phone_message is default:
+    font "JMH Typewriter-Bold.ttf"
+
+style phone_message_time is default:
+    font "JMH Typewriter-Bold.ttf"
+
+style phone_message_preview is default:
+    font "JMH Typewriter-Bold.ttf"
+
+style phone_header is default:
+    font "JMH Typewriter-Bold.ttf"
 
 # =========================================
 # VARIÁVEIS
@@ -51,6 +60,11 @@ default player_typing_target = ""
 default player_typing_shown = ""
 default player_typing_label = None
 
+default player_choice_text = ""
+default player_choice_target_label = None
+default player_choice_date = None
+default player_choice_time = None
+
 default typing_contact = None
 default typing_active = False
 
@@ -73,6 +87,8 @@ default archived_contacts = ["Akemi", "Unknown", "Mãe"]
 
 default current_chat = None
 
+default phone_chat_scroll_bottom = False
+
 default phone_choices = {
     "estella_novo_contato": [
         {
@@ -88,11 +104,13 @@ default phone_choices = {
     "jinsei_yuki_atraso": [
         {
             "text": "Relaxa, eu nunca me atraso ;)",
-            "label": "reply_jinsei_atraso1"
+            "label": "reply_jinsei_atraso1",
+            "time": "08:15"
         },
         {
             "text": "Pó dexa 👍",
-            "label": "reply_jinsei_atraso2"
+            "label": "reply_jinsei_atraso2",
+            "time": "08:15"
         }
     ]
 
@@ -121,8 +139,6 @@ default chats = {
 
         {"sender": "Player", "text": "Você continua estranha kk.", "date": "2023-04-11", "time": "08:47"},
 
-        {"sender": "Jinsei", "text": "E você continua atrasado.", "date": "2023-04-11", "time": "08:47"},
-
 
         # =========================
         # REAPROXIMAÇÃO
@@ -139,9 +155,7 @@ default chats = {
         # PRIMEIRO MOMENTO ESTRANHO
         # =========================
 
-        {"sender": "Player", "text": "Você vai no acampamento?", "date": "2023-06-14", "time": "22:03"},
-
-        {"sender": "Player", "text": "Mês que vem?", "date": "2023-06-14", "time": "22:03"},
+        {"sender": "Player", "text": "Você vai no acampamento do pessoal Mês que vem?", "date": "2023-06-14", "time": "22:03"},
 
         {"sender": "Jinsei", "text": "Não gosto mais desse tipo de lugar.", "date": "2023-06-14", "time": "22:05"},
 
@@ -162,9 +176,7 @@ default chats = {
 
         {"sender": "Jinsei", "text": "Você disse isso semestre passado também.", "date": "2024-03-19", "time": "13:57"},
 
-        {"sender": "Player", "text": "Então... Ainda é culpa dos professores", "date": "2024-03-19", "time": "13:58"},
-
-        {"sender": "Player", "text": "muito chato as aulas, ta loco.", "date": "2024-03-19", "time": "13:58"},
+        {"sender": "Player", "text": "Então... Ainda é culpa dos professores muito chato as aulas, ta loco.", "date": "2024-03-19", "time": "13:58"},
 
         {"sender": "Jinsei", "text": "Você tem que se esforçar mais.", "date": "2024-03-19", "time": "13:59"},
 
@@ -191,7 +203,7 @@ default chats = {
 
         {"sender": "Player", "text": "Talvez eu só esteja ficando velho.", "date": "2024-09-02", "time": "01:19"},
 
-        {"sender": "Jinsei", "text": "Você fala como um senhor de 70 anos.", "date": "2024-09-02", "time": "01:20"},
+        {"sender": "Jinsei", "text": "Você fala como se fosse um senhor de 70 anos.", "date": "2024-09-02", "time": "01:20"},
 
         {"sender": "Player", "text": "E se eu for 😱😱😱😱", "date": "2024-09-02", "time": "01:25"},
 
@@ -206,11 +218,11 @@ default chats = {
 
         {"sender": "Player", "text": "Depende do quê?", "date": "2025-07-11", "time": "23:54"},
 
-        {"sender": "Jinsei", "text": "Do quanto aquilo machuca.", "date": "2025-07-11", "time": "23:56"},
+        {"sender": "Jinsei", "text": "Do quanto aquilo machucou ou traumatizou", "date": "2025-07-11", "time": "23:56"},
 
         {"sender": "Jinsei", "text": "Porquê?", "date": "2025-07-11", "time": "23:57"},
 
-        {"sender": "Player", "text": "Nada, pra saber", "date": "2025-07-11", "time": "23:58"},
+        {"sender": "Player", "text": "Nada, pra saber.", "date": "2025-07-11", "time": "23:58"},
 
 
         # =========================
@@ -324,12 +336,13 @@ init python:
         "K_SPACE","K_RETURN","K_BACKSPACE"
     ]
 
-    def begin_player_typing(contact, text, label_name):
+    def begin_player_typing(contact, text, label_name=None):
         store.player_typing_active = True
         store.player_typing_contact = contact
         store.player_typing_target = text
         store.player_typing_shown = ""
         store.player_typing_label = label_name
+        store.phone_chat_scroll_bottom = True
         renpy.restart_interaction()
 
     def player_type_next_char():
@@ -339,6 +352,8 @@ init python:
 
             if current_len < target_len:
                 store.player_typing_shown = store.player_typing_target[:current_len + 1]
+            else:
+                store.player_typing_active = False
 
         renpy.restart_interaction()
 
@@ -350,6 +365,50 @@ init python:
         store.player_typing_label = None
         renpy.restart_interaction()
 
+    def get_npc_typing_delay(text, base=0.8, per_char=0.05, minimum=0.8, maximum=6.0):
+        if text is None:
+            return minimum
+        delay = base + len(text) * per_char
+        return min(max(delay, minimum), maximum)
+
+label player_choice_send:
+    $ pending_choices.pop(current_chat, None)
+    call send_player_message(current_chat, player_choice_text, player_choice_date, player_choice_time)
+    $ next_label = player_choice_target_label
+    $ player_choice_text = ""
+    $ player_choice_target_label = None
+    $ player_choice_date = None
+    $ player_choice_time = None
+
+    if next_label:
+        jump expression next_label
+
+    return
+
+label send_player_message(contact, text, date=None, time=None):
+    $ begin_player_typing(contact, text)
+
+    while player_typing_active:
+        pause 0.03
+
+    $ add_message(contact, "Player", text, date, time)
+    $ phone_chat_scroll_bottom = True
+    $ finish_player_typing()
+
+    return
+
+label npc_type_and_send(contact, text, time=None):
+    $ typing_contact = contact
+    $ typing_active = True
+    $ renpy.restart_interaction()
+
+    pause get_npc_typing_delay(text)
+
+    $ typing_active = False
+    $ add_message(contact, contact, text, time=time)
+    $ renpy.restart_interaction()
+
+    return
 init python:
 
     def unlock_contact(name):
@@ -359,6 +418,8 @@ init python:
     def add_message(contact, sender, text, date=None, time=None):
         if contact not in store.chats:
             store.chats[contact] = []
+        if store.phone_screen == "chat" and store.current_chat == contact:
+            store.phone_chat_scroll_bottom = True
         if date is None:
             date = store.current_game_date
         if time is None:
@@ -402,6 +463,13 @@ init python:
 
         return "%d de %s de %d" % (msg_date.day, months[msg_date.month], msg_date.year) 
 
+    def get_chat_preview(text, max_chars=40):
+        if text is None:
+            return ""
+        if len(text) <= max_chars:
+            return text
+        return text[:max_chars - 3].rstrip() + "..."
+
     def get_contact_name(contact):
         return store.contact_display_names.get(contact, contact)
 
@@ -432,10 +500,10 @@ init python:
 
         renpy.restart_interaction()
 
-    def receive_message(contact_id, text):
+    def receive_message(contact_id, text, time=None):
         register_contact(contact_id, get_contact_name(contact_id), "default.png")
 
-        add_message(contact_id, contact_id, text)
+        add_message(contact_id, contact_id, text, time=time)
 
         store.phone_notify_active = True
         store.phone_notify_sender = get_contact_name(contact_id)
@@ -581,7 +649,7 @@ screen phone_home():
                 xysize (44, 44)
                 action SetVariable("phone_screen", "sms")
 
-            text "SMS" size 18 color "#ffffff" xalign 0.5
+            text "SMS" style "phone_header" size 18 color "#ffffff" xalign 0.5
 
         fixed:
             xpos 250
@@ -608,11 +676,11 @@ screen phone_sms_main():
             action SetVariable("phone_screen", "home")
 
         text "CONTATOS":
+            style "phone_header"
             xalign 0.5
             ypos 50
             size 20
             color "#d9d9d9"
-            bold True
 
         viewport:
             xpos 38
@@ -634,7 +702,8 @@ screen phone_sms_main():
                         hover_background "#ffffff18"
                         action [
                             SetVariable("current_chat", contact),
-                            SetVariable("phone_screen", "chat")
+                            SetVariable("phone_screen", "chat"),
+                            SetVariable("phone_chat_scroll_bottom", True)
                         ]
 
                         hbox:
@@ -647,13 +716,18 @@ screen phone_sms_main():
                                 yalign 0.5
                                 spacing 3
 
-                                text get_contact_name(contact) size 22 color "#ffffff"
+                                text get_contact_name(contact):
+                                    style "phone_header"
+                                    size 22
+                                    color "#ffffff"
 
                                 if len(chats.get(contact, [])) > 0:
-                                    text chats[contact][-1]["text"]:
+                                    text get_chat_preview(chats[contact][-1]["text"], 40):
+                                        style "phone_message_preview"
                                         size 14
                                         color "#aaaaaa"
                                         xmaximum 210
+                                        text_align 0.0
 
 # =========================================
 # SENHA DOS ARQUIVADOS
@@ -672,6 +746,7 @@ screen phone_archive_password():
             action SetVariable("phone_screen", "home")
 
         text "Digite sua senha:":
+            style "phone_header"
             xalign 0.5
             ypos 100
             size 28
@@ -752,7 +827,8 @@ screen phone_archive_list():
                         hover_background "#ffffff18"
                         action [
                             SetVariable("current_chat", contact),
-                            SetVariable("phone_screen", "chat")
+                            SetVariable("phone_screen", "chat"),
+                            SetVariable("phone_chat_scroll_bottom", True)
                         ]
 
                         hbox:
@@ -765,10 +841,13 @@ screen phone_archive_list():
                                 yalign 0.5
                                 spacing 3
 
-                                text get_contact_name(contact) size 22 color "#ffffff"
+                                text get_contact_name(contact):
+                                    style "phone_header"
+                                    size 22
+                                    color "#ffffff"
 
                                 if len(chats.get(contact, [])) > 0:
-                                    text chats[contact][-1]["text"] size 14 color "#aaaaaa" xmaximum 220
+                                    text get_chat_preview(chats[contact][-1]["text"], 40) size 14 color "#aaaaaa" xmaximum 220 text_align 0.0
 
 # =========================================
 # TELA DE CONVERSA
@@ -802,21 +881,26 @@ screen phone_chat():
             ]
 
         text "[get_contact_name(current_chat)]":
+            style "phone_header"
             xalign 0.5
             ypos 48
             size 26
             color "#ffffff"
 
+        $ yinitial_scroll = 1.0 if phone_chat_scroll_bottom else 0.0
+
         viewport:
+            id "phone_chat_viewport"
             xpos 35
             ypos 115
             xsize 320
             ysize 455
             draggable True
             mousewheel True
+            yinitial yinitial_scroll
 
             vbox:
-                spacing 10
+                spacing 8
 
                 $ last_date = None
 
@@ -835,52 +919,96 @@ screen phone_chat():
 
                     if msg["sender"] == "Player":
 
-                        fixed:
+                        hbox:
                             xsize 320
-                            ysize 62
 
-                            add "bubble_player":
-                                xpos 70
-                                ypos 0
-                                xysize (250, 60)
+                            frame:
+                                xalign 1.0
+                                xoffset -8
+                                xmaximum 270
+                                xminimum 110
+                                yminimum 44
+                                padding (16, 12, 16, 12)
+                                background Solid("#2E88FF")
 
-                            text msg["text"]:
-                                xpos 102
-                                ypos 13
-                                xmaximum 165
-                                size 14
-                                color "#ffffff"
+                                vbox:
+                                    spacing 4
+                                    xmaximum 248
 
-                            if msg.get("time", "") != "":
-                                text msg["time"]:
-                                    xpos 280
-                                    ypos 34
-                                    size 9
-                                    color "#dceeff"
+                                    text msg["text"]:
+                                        style "phone_message"
+                                        xmaximum 248
+                                        text_align 0.0
+                                        size 13
+                                        color "#ffffff"
+
+                                    if msg.get("time", "") != "":
+                                        text msg["time"]:
+                                            style "phone_message_time"
+                                            xalign 1.0
+                                            size 8
+                                            color "#dceeff"
+
                     else:
 
-                        fixed:
+                        hbox:
                             xsize 320
-                            ysize 62
 
-                            add "bubble_npc":
-                                xpos 0
-                                ypos 0
-                                xysize (250, 60)
+                            frame:
+                                xmaximum 280
+                                xminimum 110
+                                yminimum 44
+                                padding (16, 12, 16, 12)
+                                background Solid("#ffffff")
 
-                            text msg["text"]:
-                                xpos 32
-                                ypos 13
-                                xmaximum 165
-                                size 14
-                                color "#111111"
+                                vbox:
+                                    spacing 4
+                                    xmaximum 248
 
-                            if msg.get("time", "") != "":
-                                text msg["time"]:
-                                    xpos 195
-                                    ypos 34
-                                    size 9
-                                    color "#666666"
+                                    text msg["text"]:
+                                        style "phone_message"
+                                        xmaximum 248
+                                        text_align 0.0
+                                        size 13
+                                        color "#111111"
+
+                                    if msg.get("time", "") != "":
+                                        text msg["time"]:
+                                            style "phone_message_time"
+                                            xalign 1.0
+                                            size 8
+                                            color "#666666"
+
+                            null:
+                                xfill True
+
+                if player_typing_active and player_typing_contact == current_chat:
+
+                    timer 0.04 repeat True action Function(player_type_next_char)
+
+                    hbox:
+                        xsize 320
+                        yalign 0.0
+
+                        frame:
+                            xalign 1.0
+                            xoffset -8
+                            xmaximum 270
+                            xminimum 110
+                            yminimum 44
+                            padding (16, 12, 16, 12)
+                            background Solid("#2E88FF")
+
+                            vbox:
+                                spacing 4
+                                xmaximum 248
+
+                                text player_typing_shown:
+                                    style "phone_message"
+                                    xmaximum 248
+                                    text_align 0.0
+                                    size 13
+                                    color "#ffffff"
 
                 if typing_active and typing_contact == current_chat:
 
@@ -888,7 +1016,7 @@ screen phone_chat():
                         xsize 320
                         ysize 62
 
-                        add "bubble_npc":
+                        add Frame(Solid("#ffffff"), 12, 12):
                             xpos 0
                             ypos 0
                             xysize (250, 60)
@@ -902,109 +1030,119 @@ screen phone_chat():
                             text "●" size 14 color "#111111" at dot_wave(0.15)
                             text "●" size 14 color "#111111" at dot_wave(0.30)
 
+        if phone_chat_scroll_bottom:
+            timer 0.01 action [Scroll("phone_chat_viewport", "vertical increase", 9999, delay=0.0), SetVariable("phone_chat_scroll_bottom", False)]
+
+        add "send_disabled":
+            xpos 288
+            ypos 615
+            xysize (50, 50)
+
         if current_chat in pending_choices:
 
-            vbox:
-                xpos 52
-                ypos 585
-                spacing 6
+                    vbox:
+                        xpos 52
+                        ypos 585
+                        spacing 8
 
-                $ choice_id = pending_choices[current_chat]
+                        $ choice_id = pending_choices[current_chat]
 
-                if choice_id in phone_choices:
+                        if choice_id in phone_choices:
 
-                    for option in phone_choices[choice_id]:
+                            for option in phone_choices[choice_id]:
 
-                        textbutton option["text"]:
-                            xsize 285
-                            ysize 30
-                            action Call(option["label"])
+                                textbutton option["text"]:
+                                    xmaximum 285
+                                    xfill True
+                                    text_align 0.0
+                                    text_size 16
+                                    padding (10, 10)
+                                    background Solid("#ffffff22")
+                                    hover_background Solid("#ffffff44")
+                                    action [
+                                        SetVariable("player_choice_text", option["text"]),
+                                        SetVariable("player_choice_target_label", option["label"]),
+                                        SetVariable("player_choice_date", option.get("date", None)),
+                                        SetVariable("player_choice_time", option.get("time", None)),
+                                        Call("player_choice_send")
+                                    ]
 
-    if editing_contact_name:
+        if editing_contact_name:
 
-        frame:
-            xpos 58
-            ypos 170
-            xsize 240
-            ysize 170
+            frame:
+                xpos 58
+                ypos 170
+                xsize 240
+                ysize 170
 
-            background "#111111ee"
-            padding (18, 18)
+                background "#111111ee"
+                padding (18, 18)
 
-            vbox:
-                spacing 10
-                xalign 0.5
-                yalign 0.5
+                vbox:
+                    spacing 10
+                    xalign 0.5
+                    yalign 0.5
 
-                if current_chat == "jinsei":
-                    add "jinsei_avatar":
+                    if current_chat == "jinsei":
+                        add "jinsei_avatar":
+                            xalign 0.5
+                            xysize (70, 70)
+
+                    text "Alterar nome":
                         xalign 0.5
-                        xysize (70, 70)
+                        size 20
+                        color "#ffffff"
 
-                text "Alterar nome":
-                    xalign 0.5
-                    size 20
-                    color "#ffffff"
+                    input:
+                        value VariableInputValue("temp_contact_name")
+                        length 18
+                        color "#ffffff"
+                        size 20
+                        xalign 0.5
+                        xmaximum 180
 
-                input:
-                    value VariableInputValue("temp_contact_name")
-                    length 18
-                    color "#ffffff"
-                    size 20
-                    xalign 0.5
-                    xmaximum 180
-
-                textbutton "Confirmar":
-                    xalign 0.5
-                    action [
-                        SetDict(contact_display_names, current_chat, temp_contact_name),
-                        SetVariable("editing_contact_name", False),
-                        SetVariable("temp_contact_name", "")
-                    ]
-
-    add "send_disabled":
-        xpos 288
-        ypos 615
-        xysize (50, 50)
-
+                    textbutton "Confirmar":
+                        xalign 0.5
+                        action [
+                            SetDict(contact_display_names, current_chat, temp_contact_name),
+                            SetVariable("editing_contact_name", False),
+                            SetVariable("temp_contact_name", "")
+                        ]
 
 # =========================================
 # LABELS DE RESPOSTA
 # =========================================
 
 label reply_jinsei_atraso1:
-    $ add_message("Jinsei", "Player", "Relaxa, eu nunca me atraso ;)")
-    $ pending_choices.pop("Jinsei", None)
-
-    $ typing_contact = "Jinsei"
-    $ typing_active = True
-    $ renpy.restart_interaction()
-
-    pause 1.5
-
-    $ typing_active = False
-    $ add_message("Jinsei", "Jinsei", "Hmmm... Sei.... quero ver então 😠")
-    $ renpy.restart_interaction()
+    call npc_type_and_send("Jinsei", "Hmmm... Sei.... quero ver então 😠", time="08:15")
 
     call jinsei_yuki_final
     
     return
 
+label jinsei_yuki_final:
+
+    call send_player_message("Jinsei", "O Professor Yuki me adora, não tem porque dele brigar comigo pô", time="08:16")
+
+    call npc_type_and_send("Jinsei", "Adora tanto, que você dorme em TODAS as aulas deles", time="08:16")
+
+    call send_player_message("Jinsei", "Não, mas você tem que entender que eu estudo por fora, sabe como é né!", time="08:16")
+    call send_player_message("Jinsei", "Sou um gênio imcompreendido", time="08:16")
+
+    call npc_type_and_send("Jinsei", "Incompreendido*", time="08:17")
+
+    call send_player_message("Jinsei", "Ta, ta... Vou indo nessa tchau", time="08:17")
+
+    call npc_type_and_send("Jinsei", "Tchau, até daqui a pouco 😊", time="08:17")
+
+    return
+
 label reply_jinsei_atraso2:
-    $ add_message("Jinsei", "Player", "Pó dexa 👍")
-    $ pending_choices.pop("Jinsei", None)
+    call npc_type_and_send("Jinsei", "Esse emoji de joinha é de tiozão hahahaha 🤣", time="08:15")
 
-    $ typing_contact = "Jinsei"
-    $ typing_active = True
-    $ renpy.restart_interaction()
+    call jinsei_yuki_final
 
-    pause 1.5
-
-    $ typing_active = False
-    $ add_message("Jinsei", "Jinsei", "Esse emoji de joinha é de tiozão hahahaha 🤣")
-    $ renpy.restart_interaction()
-
-    $ add_messag("JInsei", "Player", "")
+    return
 
 
 
@@ -1012,64 +1150,28 @@ label reply_jinsei_atraso2:
 
 
 label reply_estella_novo1:
-
-    $ add_message("Estella", "Player", "Olá, é sim. Quem seria?")
-    $ pending_choices.pop("Estella", None)
-
-    $typing_contact = "Estella"
-    $typing_active = True
-    $ renpy.restart_interaction()
-
-    pause 1.5
-
-    $ typing_active = False
-    $ add_message("Estella", "Estella", "Ai que bom! Achei que você tinha passado o número errado hahaha")
-    $ renpy.restart_interaction()
+    call npc_type_and_send("Estella", "Ai que bom! Achei que você tinha passado o número errado hahaha")
 
     call estella_primeiraconversa
 
     return
 
 label reply_estella_novo2:
-    $ add_message("Estella", "Player", "Sim, é meu número.")
-    $ pending_choices.pop("Estella", None)
-
-    $ typing_contact = "Estella"
-    $ typing_active = True
-    $ renpy.restart_interaction()
-
-    pause 1.5
-
-    $ typing_active = False
-    $ add_message("Estella", "Estella", "Ah que bom! Sou eu a Estella, você me passou seu número se lembra?")
-    $ renpy.restart_interaction()
+    call npc_type_and_send("Estella", "Ah que bom! Sou eu a Estella, você me passou seu número se lembra?")
 
     call estella_primeiraconversa
 
     return
 
 label estella_primeiraconversa:
-    $ typing_contact = "Estella"
-    $ typing_active = True
-    $ renpy.restart_interaction()
+    call npc_type_and_send("Estella", "Você tinha me pedido para te mandar mensagem quando chegasse em casa.")
 
-    pause 1.5
-
-    $ typing_active = False
     if consequência_ativada["ajudar_stella_chave"] == True:
-        $ add_message("Estella", "Estella", "Você tinha me pedido para te mandar mensagem quando chegasse em casa.")
         $ renpy.restart_interaction()
 
         pause 0.5
 
-        $ typing_contact = "Estella"
-        $ typing_active = True
-        $ renpy.restart_interaction()
-
-        pause 1.5
-
-        $ typing_active = False
-        $ add_message("Estella", "Estella", "Eu acabei de chegar em casa, e queria saber se você consegue me ajudar a procura-la agora?")
+        call npc_type_and_send("Estella", "Eu acabei de chegar em casa, e queria saber se você consegue me ajudar a procura-la agora?")
         $ set_pending_choice("Estella", "estella_escolha_02")
         $ renpy.restart_interaction()
 

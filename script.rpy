@@ -985,7 +985,11 @@ label start:
 
 label escolhamodo:
     # $ receive_unknown_message("Estella", "Oii, é o Kioku?", "estella_contato.png")
+    $ receive_message("Jinsei", "Ei, só pra te lembrar, o professor Yuki não gosta de atrasos, então não se atrasa!!!!!!!", time="08:15")
+    $ set_pending_choice("Jinsei", "jinsei_yuki_atraso")
     "{cps=40}Antes de começarmos, por favor escolha o modo de jogo:{/cps}"
+
+    
 
     # jump modojogo
 

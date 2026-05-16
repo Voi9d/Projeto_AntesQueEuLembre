@@ -161,11 +161,8 @@ label prova:
     j encantadaf "{cps=40}\"Não vai se atrasar ein Kioku.{/cps}\""
 
     k "{cps=40}{i}Graças a Deus eu estudei pra essa prova, última prova desse semestre, depois posso ficar livre da faculdade.{/i}{/cps}"
-    k "{cps=40}{i}Ta não vamo enrolar, ja é 8 horas e 15, o trêm chega as 8 e 40, tenho 15 minutos pra sair de casa.{/i}{/cps}"
+    k "{cps=40}{i}Ta não vamo enrolar, ja é 8:15, o trêm chega as 8:40, tenho 15 minutos pra sair de casa.{/i}{/cps}"
     k "{cps=40}{i}Eu posso fazer duas coisas só, e agora o que eu faço velho, me perdi no tempo conversando com a Jinsei.{/i}{/cps}"
-
-    $ receive_message("Jinsei", "Ei, só pra te lembrar, o professor Yuki não gosta de atrasos, então não se atrasa!!!!!!!")
-    $ set_pending_choice("Jinsei", "jinsei_yuki_atraso")
 
     menu:
         "Escovar os Dentes":
@@ -311,7 +308,7 @@ label cafemanha:
 label alimentarmingau:
     scene sala
     with pixellate
-    play audio "audio/minguauronronando.mp3"
+    play audio "audio/Mingau/minguauronronando.mp3"
     show mingaudormindo at center:
         zoom 0.5
     k feliz "{cps=40}{i}O Mingau é tão bonito dormindo, você é a unica coisa que ainda me faz sorrir nesse mundo amigão.{/i}{/cps}"
@@ -319,15 +316,15 @@ label alimentarmingau:
     stop audio fadeout 0.5
     hide mingaudormindo
     $ unlock_achievement('mingau')
-    play audio "audio/mingaumiando.mp3" fadeout 0.5
+    play audio "audio/Mingau/mingaumiando.mp3" fadeout 0.5
     show minguaufeliz
     with dissolve
     k feliz "{cps=40}\"Bom dia amigão, coloquei sua comida no pote, pode ir comer.{/cps}\""
     k feliz "{cps=40}\"Eu vou sair agora pra ir pra faculdade, mas não se preocupa que eu volto mais tarde.{/cps}\""
     k superfeliz "{cps=40}\"Tenta não fazer bagunça por aí ok?{/cps}\""
-    play audio "audio/mingauresponde.mp3"
+    play audio "audio/Mingau/mingauresponde.mp3"
     k feliz "{cps=40}\"Eu te amo mingau, te vejo mais tarde amigão.{/cps}\""
-    play audio "audio/mingauvaicomer.mp3"
+    play audio "audio/Mingau/mingauvaicomer.mp3"
     hide minguaufeliz
     with dissolve
 
