@@ -56,7 +56,7 @@ label discussao:
             menu:
                 "SOCAR A PORRA DO SUBARU":
                     stop music fadeout 1.0
-                    play music "audio/Musicas/schooldistorcido.mp3" fadein 1.0
+                    play music "audio/Musicas/KiokuI.mp3" fadein 1.0
                     scene narrador
                     with dissolve
                     "???" "{cps=40}{i}Kioku, você sabe o que fazer....{/i}{/cps}"
@@ -93,7 +93,7 @@ label discussao:
 
                 "Socar Subaru":
                     stop music fadeout 1.0
-                    play music "audio/Musicas/schooldistorcido.mp3" fadein 1.0
+                    play music "audio/Musicas/KiokuI.mp3" fadein 1.0
                     "{cps=40}Kioku fecha seus punhos, é como se tudo ao redor ficasse lento, vendo Subaru Ichida na sua frente, rindo dele, e de sua situação....{/cps}"
                     "???" "{cps=40}{i}Ele ri de você Kioku, como se você fosse ninguém, ele ri da sua situação, ri de seus parentes, você vai mesmo deixar ele te tratar dessa forma?{/i}{/cps}"
                     "???" "{cps=40}{i}Não..... você não vai deixar isso acontecer.... VOCÊ NÃO PODE DEIXAR ISSO ACONTECER.{/i}{/cps}"
@@ -200,7 +200,7 @@ label discussaoatraso:
             menu:
                 "SOCAR A PORRA DO SUBARU":
                     stop music fadeout 1.0
-                    play music "audio/Musicas/schooldistorcido.mp3" fadein 1.0
+                    play music "audio/Musicas/KiokuI.mp3" fadein 1.0
                     scene narrador
                     with dissolve
                     "???" "{cps=40}{i}Kioku, você sabe o que fazer....{/i}{/cps}"
@@ -237,7 +237,7 @@ label discussaoatraso:
 
                 "Socar Subaru":
                     stop music fadeout 1.0
-                    play music "audio/Musicas/schooldistorcido.mp3" fadein 1.0
+                    play music "audio/Musicas/KiokuI.mp3" fadein 1.0
                     "{cps=40}Kioku fecha seus punhos, é como se tudo ao redor ficasse lento, vendo Subaru Ichida na sua frente, rindo dele, e de sua situação....{/cps}"
                     "???" "{cps=40}{i}Ele ri de você Kioku, como se você fosse ninguém, ele ri da sua situação, ri de seus parentes, você vai mesmo deixar ele te tratar dessa forma?{/i}{/cps}"
                     "???" "{cps=40}{i}Não..... você não vai deixar isso acontecer.... VOCÊ NÃO PODE DEIXAR ISSO ACONTECER.{/i}{/cps}"

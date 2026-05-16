@@ -1,6 +1,6 @@
 label Capítulo_1:
     stop music fadeout 1.0
-    play music "audio/frozen_winter.mp3" fadein 1.0
+    play music "audio/Musicas/frozen_winter.mp3" fadein 1.0
     
     scene Ato1
     with dissolve
@@ -9,24 +9,18 @@ label Capítulo_1:
 
 
 
-    "Voz Feminina 1" "{cps=40}{i}Ainda ta acordado, Kioku?{/cps}{/i}"
-    "Kioku Jovem" "{cps=40}{i}...tô. Não consigo dormir em lugar aberto.{/cps}{/i}"
-    "Voz Feminina 2" "{cps=40}{i}Engraçado, eu durmo melhor aqui do que em casa.{/cps}{/i}"
-    "Voz Feminina 1" "{cps=40}{i}Você sempre foi assim né {b}Fmmb{/b} hahahaha.{/cps}{/i}"
-    "Voz Feminina 2" "{cps=40}{i}{b}Kjotfj{/b}, eu gosto do ar livre.{/cps}{/i}"
-    "Voz Feminina 1" "{cps=40}{i}Bom, eu não to com sono, quem quer ir tomar um banho no lago?{/cps}{/i}"
-    "Voz Feminina 2" "{cps=40}{i}Eu topo! Vamos lá então.{/cps}{/i}"
-    "Kioku Jovem" "{cps=40}{i}Nah, vou deixar essa passar, podem ir sem mim.{/i}{/cps}"
-    "Voz Feminina 1" "{cps=40}{i}Ah vai Kioku, não seja bobo, vai ser divertido.{/cps}{/i}"
-    "Voz Feminina 2" "{cps=40}{i}É verdade Kioku, você sempre fica tão tenso, vai ser bom relaxar um pouco.{/cps}{/i}"
-    "Kioku Jovem" "{cps=40}{i}Não sei não, eu prefiro ficar aqui mesmo...{/i}{/cps}"
+    "Voz Feminina" "{cps=40}\"Eai Kioku, você quer?{/cps}\""
+    "Voz Masculina" "{cps=40}\"Ah... Não sei, não sei se quero...{/cps}\""
+    "Voz Feminina" "{cps=40}\"Vamos, você precisa expairar a cabeça depois de tudo, vai tar todo mundo, vai ser divertido...{/cps}\""
+    "Kioku Aida" "{cps=40}\"Hmm...... Tá bom, acho que vou...{/cps}\""
+    "Voz Feminina" "{cps=40}\"Ah que bom, vai ser divertido, eu prometo...{/cps}\""
     $ unlock_achievement('first_ach')
     pause 1.0
     k "{cps=40}{i}Mesmo passando tanto tempo, eu as vezes penso sobre...{/i}{/cps}"
     
     # Diminui o volume da música para 30% quando o alarme tocar
     $ renpy.music.set_volume(0.3, delay=0.5, channel='music')
-    play sound "alarme.mp3" fadein 0.5
+    play sound "audio/SoundsEffects/alarme.mp3" fadein 0.5
     pause 0.25
 
     scene Quarto1
@@ -71,6 +65,26 @@ label omesmodesempre:
     j sorisso "{cps=40}\"Ah me conta mais vai, se parece que acordou meio mal.{/cps}\""
     jump contar_verdade
 
+label acordadodespertador:
+
+    k normal "{cps=40}\"Ah... To bem, única coisa é que fui acordado pelo despertador.... de novo.\"{/cps}"
+    j encantadaf "{cps=40}\"Bom pelo menos alguem consegue te acordar hahahahaha.{/cps}\""
+    k divertindo "{cps=40}\"Hahahaha, tem razão, mas sei la, hoje queria dormir mais.{/cps}\""
+    j normal "{cps=40}\"Mas, pela sua voz, você parece meio mal.{/cps}\""
+    k normal "{cps=40}\"Ah não é nada de mais, não precisa se preocupar com isso.{/cps}\""
+    j surpresa "{cps=40}\"Pode confiar em mim Kioku, o que aconteceu?{/cps}\""
+    jump contar_verdade
+
+return
+
+label silencio:
+
+    k normal "{cps=40}\"....{/cps}\""
+    j choro "{cps=40}\"Sonhou com aquilo de novo né?{/cps}\""
+    k triste "{cps=40}\"....{/cps}\""
+    k "{cps=40}{i}Aquele silêncio parece ter sido durado um século, porque sempre que toca nesse assunto é assim.{/i}{/cps}"
+    jump contar_verdade
+
 label contar_verdade:
     menu:
         "Contar a verdade":
@@ -84,23 +98,15 @@ label contar_verdade:
             j surpresa "{cps=40}\"Sério? E o que aconteceu?{/cps}\""
             scene sonhokioku
             with dissolve
-            k normal "{cps=40}\"Nada de mais, a mesma conversa novamente, eu mais jovem sendo acordado por uma mulher.{/cps}\""
-            k normal "{cps=40}\"E então eu conseguia ouvir outra voz junto, também de uma mulher.{/cps}\""
-            j normal "{cps=40}\"E você conseguia ver algo?{/cps}\""
-            k normal "{cps=40}\"Não... De novo, apenas eu conseguia ouvir as vozes...{/cps}\""
-            k normal "{cps=40}\"Mas dessa vez eu senti como se alguem tivesse obervando aquela cena, tivesse ME observando...{/cps}\""
+            k normal "{cps=40}\"Nada de mais, eu conversando com uma outra pessoa, ela estava me convidando para alguma coisa{/cps}\""
+            j surpresa "{cps=40}\"Ah... e você lembra quem era essa pessoa?{/cps}\""
+            k normal "{cps=40}\"Não sei, não lembro o rosto dela direito... mas eu lembro que ela tinha uma voz muito suave e animada...{/cps}\""
             scene Quarto1
             with dissolve
-            k divertindo "{cps=40}\"Faz sentido o que eu falei? Haha?{/cps}\""
-            j sorisso "{cps=40}\"Faz sim, mas eu acho que esse pesadelo vai passar logo, não precisamos nos preocupar muito.{/cps}\""
-            j sorisso "{cps=40}\"Você não tá sozinho nessa Kioku.{/cps}\""
-            k normal "{cps=40}\"Eu sei disso Jinsei... obrigado por estar do meu lado.{/cps}\""
-            j sorissof "{cps=40}\"Obrigado por me contar isso, Kioku, eu me sinto honrada por você confiar em mim.{/cps}\""
+            k normal "{cps=40}\"E... foi isso, depois eu acordei{/cps}\""
+            j feliz "{cps=40}\"Entendi, bom, pelo menos não foi pesadelo, né?{/cps}\""
             $ show_consequence("Jinsei se lembrará disso", 3)
             $ consequência_ativada["jinsei_verdade_sonho"] = True
-            k "{cps=40}{i}Fazia um tempo que eu não me sentia assim, acolhido por alguém...{/i}{/cps}"
-            k feliz "{cps=40}\"Obrigado Jinsei... você é uma ótima amiga.{/cps}\""
-            j encantadaf "{cps=40}\"Ah que fofo Kioku, você também é um ótimo amigo.{/cps}\""
             j sorisso "{cps=40}\"Ei, mudando de assunto...{/cps}\""
 
             jump prova
@@ -136,58 +142,30 @@ label contar_verdade:
 
 return
 
-label acordadodespertador:
-
-    k normal "{cps=40}\"Ah... To bem, única coisa é que fui acordado pelo despertador.... de novo.\"{/cps}"
-    j encantadaf "{cps=40}\"Bom pelo menos alguem consegue te acordar hahahahaha.{/cps}\""
-    k divertindo "{cps=40}\"Hahahaha, tem razão, mas sei la, hoje queria dormir mais.{/cps}\""
-    j normal "{cps=40}\"Mas, pela sua voz, você parece meio mal.{/cps}\""
-    k normal "{cps=40}\"Ah não é nada de mais, não precisa se preocupar com isso.{/cps}\""
-    j surpresa "{cps=40}\"Pode confiar em mim Kioku, o que aconteceu?{/cps}\""
-    jump contar_verdade
-
-return
-
-label silencio:
-
-    k normal "{cps=40}\"....{/cps}\""
-    j choro "{cps=40}\"Sonhou com aquilo de novo né?{/cps}\""
-    k triste "{cps=40}\"....{/cps}\""
-    k "{cps=40}{i}Aquele silêncio parece ter sido durado um século, porque sempre que toca nesse assunto é assim.{/i}{/cps}"
-    jump contar_verdade
-
-
 label prova:
     j sorisso "{cps=40}\"Estudou para prova de hoje?{/cps}\""
     k surpreso "{cps=40}\"Era hoje?{/cps}\""
     j surpresa "{cps=40}\"Sim, era hoje.{/cps}\""
     j seachando "{cps=40}\"Meu deus do céu Kioku...{/cps}\""
     pause 0.5
-    k divertindo "{cps=40}\"Você devia ter visto sua cara hahahahaha.{/cps}\""
-    j bravanime ""
+    k divertindo "{cps=40}\"Você devia ter visto sua cara hahaha.{/cps}\""
+    j bravanime "..."
     k superfeliz "{cps=40}\"Aiai, me tirou boas risadas..{/cps}\""
     k feliz "{cps=40}\"Estudei sim Jinsei, pode ficar tranquila.{/cps}\""
-
     j sorisso "..."
     j encantada "{cps=40}\"Você tem um lindo sorriso, sabia Kioku.{/cps}\""
-
     k normal "..."
-    k "{cps=40}{i}Eu não sabia o que responder pra ela, ela nunca tinha me elogiado assim antes.{/i}{/cps}"
-
     j bravanime "{cps=40}\"Af... você tava melhor sorrindo Kioku, você tem que sorrir mais.{/cps}\""
     k normal "{cps=40}\"Não sei não, to bem assim do jeito que sou...{/cps}\""
     j sorisso "{cps=40}\"Bem, eu vou tomar um banho, tomar café, e ir pra escola, beijinhos.{/cps}\""
     j encantadaf "{cps=40}\"Não vai se atrasar ein Kioku.{/cps}\""
 
-    k "{cps=40}{i}Eu desligo o telefone, e é como se aquele sorriso tivesse voltado pro meu rosto.{/i}{/cps}"
-    k "{cps=40}{i}A única que sempre me apoiou e ficou do meu lado nesses últimos 10 anos foi a Jinsei.{/i}{/cps}"
-    k "{cps=40}{i}Acho que é por isso que me sinto a vontade com ela por perto, e as vezes até sorrio por impulso.{/i}{/cps}"
+    k "{cps=40}{i}Graças a Deus eu estudei pra essa prova, última prova desse semestre, depois posso ficar livre da faculdade.{/i}{/cps}"
     k "{cps=40}{i}Ta não vamo enrolar, ja é 8 horas e 15, o trêm chega as 8 e 40, tenho 15 minutos pra sair de casa.{/i}{/cps}"
-
-    $ receive_message("Jinsei", "Ei, não esquece da prova hoje.")
-    $ set_pending_choice("Jinsei", "jinsei_teste_prova")
-
     k "{cps=40}{i}Eu posso fazer duas coisas só, e agora o que eu faço velho, me perdi no tempo conversando com a Jinsei.{/i}{/cps}"
+
+    $ receive_message("Jinsei", "Ei, só pra te lembrar, o professor Yuki não gosta de atrasos, então não se atrasa!!!!!!!")
+    $ set_pending_choice("Jinsei", "jinsei_yuki_atraso")
 
     menu:
         "Escovar os Dentes":
@@ -372,9 +350,9 @@ label alimentarmingau:
 label sairdecasa:
     scene narrador
     with dissolve
-    play sound "audio/abrindoporta.mp3"
+    play sound "audio/SoundsEffects/abrindoporta.mp3"
     pause 1.0
-    play sound "audio/fechandoporta.mp3"
+    play sound "audio/SoundsEffects/fechandoporta.mp3"
     scene apartamentoexterno
     with pixellate
     k "{cps=40}{i}Finalmente estou fora de casa, agora é só pegar o trêm e ir pra faculdade.{/i}{/cps}"
@@ -396,7 +374,7 @@ label investigarbarulho:
     scene escadalavanderia
     with pixellate
     stop music fadeout 1.0
-    play music "audio/Quandoaencontrei.ogg" fadein 1.0
+    play music "audio/Musicas/Quandoaencontrei.ogg" fadein 1.0
     k normal "{cps=40}\"Quem está aí? Precisa de ajuda?{/cps}\""
     show Stella envergonhada
     with dissolve
@@ -524,58 +502,39 @@ label investigarbarulho:
 
 label fimdemosecreto:
     stop music fadeout 1.0
-    play music "audio/finaldemo.mp3" fadein 1.0
+    play music "audio/Musicas/finaldemo.mp3" fadein 1.0
     scene narrador
     with dissolve
     "{cps=40}Kioku volta ao seu apartamento, e ao chegar lá, ele vê uma carta em cima da mesa{/cps}"
     "{cps=40}Ele então pega a carta, e começa a ler{/cps}"
-    $ renpy.music.set_volume(0.3, delay=1.0, channel='music')
-    play audio "audio/Carta/carta1.mp3"
     "{cps=40}{i}Kioku\nSe você está lendo isso, significa que você voltou para casa sem fazer perguntas demais. Isso é bom.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta2.mp3"
     "{cps=40}{i}Você sempre faz isso.\nEu pensei em não escrever. Em deixar que o tempo fizesse o que ele sempre faz com você: apagar. Mas algumas coisas não desaparecem sozinhas. Elas apenas esperam.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta3.mp3"
     "{cps=40}{i}Você não perdeu sua memória.\nVocê escondeu ela.{/cps}{/i}"
-    stop audio
-    play audio "audio/Carta/carta4.mp3"
+
     "{cps=40}{i}Não foi um acidente.\nNão foi uma doença.\nNão foi culpa de nínguem além de você.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta5.mp3"
+
     "{cps=40}{i}Você fez isso para se proteger.\nPara se proteger do que você fez.\nDo que você é capaz de fazer.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta6.mp3"
+
     "{cps=40}{i}Há dez anos, você viu algo que não deveria continuar existindo dentro da sua cabeça.\nE quando percebeu o que aquilo significava… você escolheu esquecer."
-    stop audio
-    play audio "audio/Carta/carta7.mp3"
+
     "{cps=40}{i}Não pense que foi covardia\nFoi sobrevivência.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta8.mp3"
+
     "{cps=40}{i}Todos nós concordamos naquela noite que seria melhor assim\nQue você não precisava carregar isso\nQue o silêncio era melhor do que a verdade.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta9.mp3"
+
     "{cps=40}{i}Alguns de nós mativeram essa promessa\nOutros... não conseguiram.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta10.mp3"
+
     "{cps=40}{i}Se as memórias estão voltando, significa que o pacto falhou.\nOu que você decidiu, mesmo sem perceber, quebrá-lo.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta11.mp3"
+
     "{cps=40}{i}Olhe para as pessoas ao seu redor com atenção.\nPreste atenção em quem evita certos nomes.\nEm quem muda de assunto rápido demais.\nEm quem parece aliviado quando você diz que não se lembra.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta12.mp3"
+
     "{cps=40}{i}Elas sabem o que você fez.\nE estão com medo do que você pode fazer novamente.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta13.mp3"
+
     "{cps=40}{i}Eles não estão tentando te proteger.\nEstão tentando se proteger de você lembrando.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta14.mp3"
+
     "{cps=40}{i}Não procure respostas.\nMas, se procurar...\nEsteja preparado para perder mais do que esqueceu.{/i}{/cps}"
-    stop audio
-    play audio "audio/Carta/carta15.mp3"
+
     "{cps=40}{i}Algumas verdades não libertam.\nElas cobram.{/i}{/cps}"
-    stop audio
-    $ renpy.music.set_volume(1.0, delay=1.0, channel='music')
+
     "{cps=40}{i}Com pesar — alguém que lembra tudo.{/i}{/cps}"
     "{cps=40}{i}{b}Final 3 de 4 da Demo feita{/i}{/b}{/cps}"
     "{cps=40}{i}{b}E bem assim termina nossa história... Pelo menos por enquanto{/i}{/b}{/cps}"

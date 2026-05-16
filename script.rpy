@@ -34,7 +34,7 @@ init python:
     )
     del os
     
-    config.main_menu_music = "audio/hope.mp3"
+    config.main_menu_music = "audio/Musicas/hope.mp3"
     #jinseiamizade = 40
     #stellaamizade = 0
     #subaruamizade = 0
@@ -192,6 +192,21 @@ default consequência_ativada = {
     "naoajuda_jinsei_subaru": False,
     "ajudar_estella_chave": False,
 }
+
+screen final_text_screen():
+
+    text "{cps=18}Desculpa por ter levado dez anos.{/cps}":
+        xalign 0.5
+        yalign 0.5
+        size 34
+        color "#ffffff"
+        text_align 0.5
+        at final_text_rise
+
+transform final_text_rise:
+    alpha 0.0
+    yoffset 35
+    linear 2.0 alpha 1.0 yoffset 0
 
 transform left_pos:
     zoom 0.7
@@ -907,6 +922,7 @@ image side Augustina normal = im.Scale("images/Persoangens/Augustina Floriere/Au
 image Ato1 = "Atos/Ato I/AtoI.png"
 image Cap1 = "Atos/Ato I/Capítulo_1.png"
 image Quarto1 = "Predio/QuartoManha.png"
+image Quarto2 = "Predio/QuartoMadrugada.png"
 image narrador = "blackbackground.png"
 image sonhokioku = "SonhoKioku.png"
 image kiokujovem = "KiokuJovem.png"
@@ -918,44 +934,41 @@ image apartamentoexternonoite = "Predio/Apartment_Exterior_Night.png"
 image armariodetoalhas = "Predio/Futon_Room.png"
 image cozinhaap = "Predio/Small_Apartment_Kitchen.png"
 image cozinhaapnoite = "Predio/Small_Apartment_Kitchen_Night.png"
-image trem = "Train_Day.png"
+image trem = "Cidade/Train_Day.png"
 image sala = "Predio/Sitting_Room.png"
 image salaanoite = "Predio/Sitting_Room_Dark.png"
 image escadalavanderia = "Predio/Outdoor_Stairs.png"
-image estacaodetrem = "EstacaoTrem.png"
+image estacaodetrem = "Cidade/EstacaoTrem.png"
 image entradaescoladia = "Escola/Entrada Dia.png"
-image hallescoladia = "Escola/Hall de Entrada Dia.png"
-image escadaescoladia = "Escola/Escadas Dia.png"
-image corredordia = "Escola/Corredor Dia.png"
-image salaauladia = "Escola/Sala de Aula Dia.png"
-image saladiretordia = "Escola/Sala do Diretor Dia.png"
-image salaprofessordia = "Escola/Sala dos Professores Dia.png"
-image vestiarioescoladia = "Escola/Vestiário Dia.png"
-image refeitorioescoladia = "Escola/Refeitório Dia.png"
-image patioescoladia = "Escola/Pátio1 Dia.png"
-image patioescoladia2 = "Escola/Pátio2 Dia.png"
-image banheiroescoladia = "Escola/Banheiro Dia.png"
+image hallescoladia = "Escola/Hall de Entrada/Hall de Entrada Dia.png"
+image escadaescoladia = "Escola/Escada/Escadas Dia.png"
+image corredordia = "Escola/Corredor Interno/Corredor Dia.png"
+image salaauladia = "Escola/Sala de Aula/Sala de Aula Dia.png"
+image saladiretordia = "Escola/Diretor/Sala do Diretor Dia.png"
+image salaprofessordia = "Escola/Sala dos Professores/Sala dos Professores Dia.png"
+image vestiarioescoladia = "Escola/Vestiário/Vestiário Dia.png"
+image refeitorioescoladia = "Escola/Refeitório/Refeitório Dia.png"
+image patioescoladia = "Escola/Pátio/Pátio1 Dia.png"
+image patioescoladia2 = "Escola/Pátio/Pátio2 Dia.png"
+image banheiroescoladia = "Escola/Banheiro/Banheiro Dia.png"
 image biblioteca1 = "Escola/Biblioteca/Biblioteca_1.png"
 image biblioteca2 = "Escola/Biblioteca/Biblioteca_2.png"
 image biblioteca3 = "Escola/Biblioteca/Biblioteca_3.png"
+image hospital = "Cidade/Hospital/quarto_hospital.png"
+image maekioku = "Personagens/Kioku Aida/Mae_Kioku.png"
+image harutachi = "Personagens/Kioku Aida/HaruTachibana.png"
 
-
-image mingaudormindo = "fuff_zzz.png"
-image minguaufeliz = "fuff_smug.png"
+image mingaudormindo = "Personagens/Mingau/fuff_zzz.png"
+image minguaufeliz = "Personagens/Mingau/fuff_smug.png"
 
 # The game starts here.
 
 label start:
 
-
+    # Ensure the attribute system is initialized for a new game.
     show screen phone_button
     show screen phone_notification
     show screen phone_system
-    # Ensure the attribute system is initialized for a new game.
-    $ init_atributos()
-    if not persistent.atributos_confirmed:
-        $ atributos_edit_reset()
-        $ renpy.call_screen("atributos_distribution")
 
     # Show a background. This uses a placeholder by default, but you can
     # add a file (named either "bg room.png" or "bg room.jpg") to the
@@ -971,13 +984,12 @@ label start:
 
 
 label escolhamodo:
-    $ receive_unknown_message("Estella", "Oi... esse é seu número?", "estella_contato.png")
+    # $ receive_unknown_message("Estella", "Oii, é o Kioku?", "estella_contato.png")
     "{cps=40}Antes de começarmos, por favor escolha o modo de jogo:{/cps}"
 
-    jump modojogo
+    # jump modojogo
 
 label modojogo:
-    
     menu:
         "Modo História":
             "{cps=40}{i}Neste modo, você poderá aproveitar a história completamente, porém terão informações a mais.{/i}{/cps}"
@@ -987,24 +999,50 @@ label modojogo:
                 "Sim":
                     $ modohistoria = True
                     "{cps=40}{i}Você escolheu o Modo História.{/i}{/cps}"
-                    jump jogo
+                    jump tutorial
                 "Não, voltar":
                     jump modojogo
         "Modo Imersivo":
             "{cps=40}{i}Diferente do Modo História, aqui você terá uma experiência mais imersiva.{/i}{/cps}"
             "{cps=40}{i}Você não saberá quando uma escolha terá consequências, escolhas que personagens poderão lembra-las mais tarde, caberá a você decidir se aquela escolha foi a certa.{/i}{/cps}"
-            "{cps=40}{i}Esteja ciente que algumas escolhas poderão te levar a finais \"ruin\".{/i}{/cps}"
+            "{cps=40}{i}Esteja ciente que algumas escolhas poderão te levar a finais \"ruins\".{/i}{/cps}"
             "{cps=40}{i}Este modo é o recomendado pelo desenvolvedor, para que você se sinta na pela de Kioku, e sinta que realmente suas escolhas podem afetar o futuro, mesmo não sabendo na hora.{/i}{/cps}"
             "{cps=40}{i}Dito isso, você tem certeza que deseja escolher esta opção?"
             menu:
                 "Sim":
                     $ modoimersivo = True
                     "{cps=40}{i}Você escolheu o Modo Imersivo.{/i}{/cps}"
-                    jump jogo
+                    jump tutorial
                 "Não, voltar":
                     jump modojogo
 
+label tutorial:
+    "{cps=30}{i}Antes de começarmos, gostaria de te mostrar algumas coisas...{/i}{/cps}"
+    "{cps=30}{i}Primeiro, vamos falar sobre os atributos...{/i}{/cps}"
+    "{cps=30}{i}Durante o jogo, você terá a oportunidade de distribuir pontos em 4 atributos diferentes: Carisma, Inteligência, Força e Sorte...{/i}{/cps}"
+    "{cps=30}{i}Cada um desses atributos pode influenciar em certas escolhas, ou até mesmo desbloquear novas opções...{/i}{/cps}"
+    "{cps=30}{i}Então escolha sabiamente onde distribuir seus pontos...{/i}{/cps}"
+    "{cps=30}{i}Mas não se preocupe, as conquistas são apenas para diversão e não afetam a história principal...{/i}{/cps}"
+    show screen phone_button
+    show screen phone_notification
+    show screen phone_system
+    "{cps=30}{i}E por último, mas não menos importante, temos o sistema de mensagens...{/i}{/cps}"
+    "{cps=30}{i}Está vendo este celular no canto superior direito? Ele é uma parte importante do jogo...{/i}{/cps}"
+    "{cps=30}{i}Durante a história, você receberá mensagens de outros personagens, e também mensagens antigas, isso serve para dar um aprofundamento à história...{/i}{/cps}"
+    "{cps=30}{i}Durante as conversas no celular você poderá escolher respostas, e essas respostas podem influenciar a história, ou até mesmo desbloquear novas opções...{/i}{/cps}"
+    "{cps=30}{i}Então preste atenção nas mensagens que você recebe, e escolha suas respostas com cuidado...{/i}{/cps}"
+    hide screen phone_button
+    hide screen phone_notification
+    hide screen phone_system    
+    "{cps=30}{i}Toda e qualquer escolha sua afeterá o futuro, então preste atenção nos detalhes...{/i}{/cps}"
+    "{cps=30}{i}Agora que você sabe um pouco mais sobre os atributos e o sistema de mensagens, está na hora de começar a história...{/i}{/cps}"
+    jump jogo
+
 label jogo:
+    $ init_atributos()
+    if not persistent.atributos_confirmed:
+        $ atributos_edit_reset()
+        $ renpy.call_screen("atributos_distribution")
     pause 1.5
     "{cps=30}{i}Olá, você pode não me conhecer, mas eu conheço você muito bem [nome_pc]...{/i}{/cps}"
     "{cps=30}{i}Você está prestes a adentrar na vida de Kioku Aida, um jovem comum que vive em uma cidade comum...{/i}{/cps}"

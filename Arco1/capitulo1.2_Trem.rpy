@@ -7,7 +7,7 @@ label tremestacao:
     call save_point
     if trematraso == True:
         stop music fadeout 1.0
-        play music "audio/PEGAOTREMKIOKU.mp3" fadein 1.0
+        play music "audio/Musicas/PEGAOTREMKIOKU.mp3" fadein 1.0
         call rolar_d20 (dc=16, atributo='agilidade', titulo="Tente a Sorte: Correr para pegar o trêm", reveal_result = True)
         $ resultado = _return
         if resultado:
@@ -23,7 +23,7 @@ label tremestacao:
             "{cps=40}Kioku olha ao redor e....{/cps}"
             "Maquinista" "{cps=40}\"Ultima chamada para o trêm com destino a Universidade de Tokyo, embarque imediatamente\"{/cps}"
             stop music fadeout 1.0
-            play music "audio/frozen_winter.mp3" fadein 1.0
+            play music "audio/Musicas/frozen_winter.mp3" fadein 1.0
             scene trem
             with pixellate
             k normal "{cps=40}\"Puta merda, consegui chegar a tempo, meu deus do céu... Deus é muito bom e o diabo não presta nem um pouco nossa.\"{/cps}"
@@ -58,7 +58,7 @@ label tremestacao:
                         $ trematraso = False
                         "{cps=40}Kioku corre em direção ao trêm, e com um salto impressionante, ele consegue entrar no trêm antes que as portas se fechassem completamente.{/cps}"
                         stop music fadeout 1.0
-                        play music "audio/frozen_winter.mp3" fadein 1.0
+                        play music "audio/Musicas/frozen_winter.mp3" fadein 1.0
                         scene trem
                         with pixellate
                         "{cps=40}Você é muito sortudo ein, nossa, o Kioku ta nas mãos certas mesmo.{/cps}"
@@ -71,7 +71,7 @@ label tremestacao:
                         "{cps=40}Kioku corre em direção a porta do trêm, tenta saltar antes dela fechar, mas ele bate de cara na porta, e o trêm começa a sair.{/cps}"
                         "{cps=40}Kioku fica ali parado, vendo o trêm se afastar, ele sente uma mistura de raiva e frustração, ele sabia que tinha que chegar a tempo, mas não conseguiu.{/cps}"
                         stop music fadeout 1.0
-                        play music "audio/frozen_winter.mp3" fadein 1.0
+                        play music "audio/Musicas/frozen_winter.mp3" fadein 1.0
                         k bravo "{cps=40}\"Merda... eu perdi o trêm... que porra de dia é esse meu deus... agora vou me fuder na prova final... nossa senhora.\"{/cps}"
                         k bravo "{cps=40}{i}Foda-se... vou ter que esperar o próximo trêm... que merda...{/i}{/cps}"
                         "{cps=40}Kioku então se afasta da plataforma, indo para a sala de espera, e se senta, esperando o próximo trêm chegar.{/cps}"
@@ -85,7 +85,7 @@ label tremestacao:
                 "Desistir e esperar o próximo trêm":
                     $ provaatraso = True
                     stop music fadeout 1.0
-                    play music "audio/frozen_winter.mp3" fadein 1.0
+                    play music "audio/Musicas/frozen_winter.mp3" fadein 1.0
                     "{cps=40}Kioku vê que o trêm está prestes a fechar as portas, e decide não arriscar sua vida tentando entrar na porta, ele se afasta da plataforma, indo para a sala de espera, e se senta, esperando o próximo trêm chegar.{/cps}"
                     "{cps=40}Depois de 30 minutos, o próximo trêm chega, Kioku entra no vagão, e procura um assento vago para se sentar, e facilmente ele o acha.{/cps}"
                     scene trem

@@ -59,7 +59,7 @@ default current_game_date = "2026-04-28"
 default phone_open = False
 default phone_screen = "home"
 
-default archive_password = "0504"
+default archive_password = "0405"
 default archive_input = ""
 default archive_unlocked = False
 
@@ -82,6 +82,17 @@ default phone_choices = {
         {
             "text": "Sim, é meu número.",
             "label": "reply_estella_novo2"
+        },
+    ],
+
+    "jinsei_yuki_atraso": [
+        {
+            "text": "Relaxa, eu nunca me atraso ;)",
+            "label": "reply_jinsei_atraso1"
+        },
+        {
+            "text": "Pó dexa 👍",
+            "label": "reply_jinsei_atraso2"
         }
     ]
 
@@ -89,9 +100,136 @@ default phone_choices = {
 }
 
 default chats = {
+
     "Jinsei": [
+
+        # =========================
+        # PRIMEIRO CONTATO - 2023
+        # =========================
+
+        {"sender": "Jinsei", "text": "Oi... Kioku?", "date": "2023-04-11", "time": "08:42"},
+
+        {"sender": "Player", "text": "Jinsei?", "date": "2023-04-11", "time": "08:44"},
+
+        {"sender": "Jinsei", "text": "Quanto tempo...", "date": "2023-04-11", "time": "08:44"},
+
+        {"sender": "Jinsei", "text": "Acho que somos colegas em Libras.", "date": "2023-04-11", "time": "08:45"},
+
+        {"sender": "Player", "text": "Sério? Que coincidência.", "date": "2023-04-11", "time": "08:46"},
+
+        {"sender": "Jinsei", "text": "Ou azar.", "date": "2023-04-11", "time": "08:46"},
+
+        {"sender": "Player", "text": "Você continua estranha kk.", "date": "2023-04-11", "time": "08:47"},
+
+        {"sender": "Jinsei", "text": "E você continua atrasado.", "date": "2023-04-11", "time": "08:47"},
+
+
+        # =========================
+        # REAPROXIMAÇÃO
+        # =========================
+
+        {"sender": "Jinsei", "text": "Você ainda toma café sem açúcar?", "date": "2023-05-02", "time": "16:11"},
+
+        {"sender": "Player", "text": "Você lembra disso?", "date": "2023-05-02", "time": "16:12"},
+
+        {"sender": "Jinsei", "text": "Eu lembro de muita coisa.", "date": "2023-05-02", "time": "16:13"},
+
+
+        # =========================
+        # PRIMEIRO MOMENTO ESTRANHO
+        # =========================
+
+        {"sender": "Player", "text": "Você vai no acampamento?", "date": "2023-06-14", "time": "22:03"},
+
+        {"sender": "Player", "text": "Mês que vem?", "date": "2023-06-14", "time": "22:03"},
+
+        {"sender": "Jinsei", "text": "Não gosto mais desse tipo de lugar.", "date": "2023-06-14", "time": "22:05"},
+
+        {"sender": "Player", "text": "Desde quando?", "date": "2023-06-14", "time": "22:05"},
+
+        {"sender": "Jinsei", "text": "...", "date": "2023-06-14", "time": "22:07"},
+
+        {"sender": "Jinsei", "text": "Só não gosto.", "date": "2023-06-14", "time": "22:08"},
+
+
+        # =========================
+        # 2024
+        # =========================
+
+        {"sender": "Jinsei", "text": "Você dormiu na aula de novo.", "date": "2024-03-19", "time": "13:55"},
+
+        {"sender": "Player", "text": "A culpa é do professor.", "date": "2024-03-19", "time": "13:56"},
+
+        {"sender": "Jinsei", "text": "Você disse isso semestre passado também.", "date": "2024-03-19", "time": "13:57"},
+
+        {"sender": "Player", "text": "Então... Ainda é culpa dos professores", "date": "2024-03-19", "time": "13:58"},
+
+        {"sender": "Player", "text": "muito chato as aulas, ta loco.", "date": "2024-03-19", "time": "13:58"},
+
+        {"sender": "Jinsei", "text": "Você tem que se esforçar mais.", "date": "2024-03-19", "time": "13:59"},
+
+        {"sender": "Jinsei", "text": "Não pode ficar dormindo nas aulas", "date": "2024-03-19", "time": "14:00"},
+
+        {"sender": "Player", "text": "To com nota de sobra nessa cadeira, to bem.", "date": "2024-03-19", "time": "14:05"},
+
+        {"sender": "Player", "text": "Tá, tenho aula de Física II agora, até....", "date": "2024-03-19", "time": "14:05"},
+
+        {"sender": "Jinsei", "text": "Não sei como você gosta de Exatas..", "date": "2024-03-19", "time": "14:07"},
+
+        {"sender": "Player", "text": "Não entendo como você gosta de Artes Sênicas", "date": "2024-03-19", "time": "14:10"},
+
+
+        # =========================
+        # MENSAGENS MAIS PESSOAIS
+        # =========================
+
+        {"sender": "Jinsei", "text": "Você anda dormindo direito?", "date": "2024-09-02", "time": "01:14"},
+
+        {"sender": "Player", "text": "Por que a pergunta?", "date": "2024-09-02", "time": "01:16"},
+
+        {"sender": "Jinsei", "text": "Você parece cansado ultimamente.", "date": "2024-09-02", "time": "01:18"},
+
+        {"sender": "Player", "text": "Talvez eu só esteja ficando velho.", "date": "2024-09-02", "time": "01:19"},
+
+        {"sender": "Jinsei", "text": "Você fala como um senhor de 70 anos.", "date": "2024-09-02", "time": "01:20"},
+
+        {"sender": "Player", "text": "E se eu for 😱😱😱😱", "date": "2024-09-02", "time": "01:25"},
+
+
+        # =========================
+        # 2025
+        # =========================
+
+        {"sender": "Player", "text": "Acha que pessoas podem esquecer algo importante?", "date": "2025-07-11", "time": "23:51"},
+
+        {"sender": "Jinsei", "text": "Depende.", "date": "2025-07-11", "time": "23:53"},
+
+        {"sender": "Player", "text": "Depende do quê?", "date": "2025-07-11", "time": "23:54"},
+
+        {"sender": "Jinsei", "text": "Do quanto aquilo machuca.", "date": "2025-07-11", "time": "23:56"},
+
+        {"sender": "Jinsei", "text": "Porquê?", "date": "2025-07-11", "time": "23:57"},
+
+        {"sender": "Player", "text": "Nada, pra saber", "date": "2025-07-11", "time": "23:58"},
+
+
+        # =========================
+        # ONTEM - 2026
+        # =========================
+
         {"sender": "Jinsei", "text": "Você chegou em casa?", "date": "2026-04-27", "time": "17:30"},
+
         {"sender": "Player", "text": "Agora sim.", "date": "2026-04-27", "time": "18:00"},
+
+        {"sender": "Jinsei", "text": "Você sumiu depois da aula.", "date": "2026-04-27", "time": "18:01"},
+
+        {"sender": "Player", "text": "Tava cansado.", "date": "2026-04-27", "time": "18:02"},
+
+        {"sender": "Jinsei", "text": "Você anda dizendo muito isso ultimamente.", "date": "2026-04-27", "time": "18:03"},
+
+        {"sender": "Player", "text": "Talvez porque seja verdade.", "date": "2026-04-27", "time": "18:04"},
+
+        {"sender": "Jinsei", "text": "Só tenta dormir cedo hoje.", "date": "2026-04-27", "time": "18:05"},
     ],
 
     "Akemi": [
@@ -447,11 +585,11 @@ screen phone_home():
 
         fixed:
             xpos 250
-            ypos 98
+            ypos 105
 
             imagebutton:
-                idle Transform("images/ui/lock.png", xysize=(38, 38))
-                hover Transform("images/ui/lock.png", xysize=(38, 38))
+                idle Transform("images/ui/lock.png", xysize=(52, 52))
+                hover Transform("images/ui/lock.png", xysize=(52, 52))
                 action SetVariable("phone_screen", "archive_password")
 # =========================================
 # TELA PRINCIPAL SMS
@@ -533,9 +671,9 @@ screen phone_archive_password():
             xysize (30, 30)
             action SetVariable("phone_screen", "home")
 
-        text "Digite a senha:":
+        text "Digite sua senha:":
             xalign 0.5
-            ypos 88
+            ypos 100
             size 28
             color "#ffffff"
 
@@ -627,7 +765,7 @@ screen phone_archive_list():
                                 yalign 0.5
                                 spacing 3
 
-                                text contact_display_names[contact] size 22 color "#ffffff"
+                                text get_contact_name(contact) size 22 color "#ffffff"
 
                                 if len(chats.get(contact, [])) > 0:
                                     text chats[contact][-1]["text"] size 14 color "#aaaaaa" xmaximum 220
@@ -719,7 +857,6 @@ screen phone_chat():
                                     ypos 34
                                     size 9
                                     color "#dceeff"
-
                     else:
 
                         fixed:
@@ -834,6 +971,44 @@ screen phone_chat():
 # =========================================
 # LABELS DE RESPOSTA
 # =========================================
+
+label reply_jinsei_atraso1:
+    $ add_message("Jinsei", "Player", "Relaxa, eu nunca me atraso ;)")
+    $ pending_choices.pop("Jinsei", None)
+
+    $ typing_contact = "Jinsei"
+    $ typing_active = True
+    $ renpy.restart_interaction()
+
+    pause 1.5
+
+    $ typing_active = False
+    $ add_message("Jinsei", "Jinsei", "Hmmm... Sei.... quero ver então 😠")
+    $ renpy.restart_interaction()
+
+    call jinsei_yuki_final
+    
+    return
+
+label reply_jinsei_atraso2:
+    $ add_message("Jinsei", "Player", "Pó dexa 👍")
+    $ pending_choices.pop("Jinsei", None)
+
+    $ typing_contact = "Jinsei"
+    $ typing_active = True
+    $ renpy.restart_interaction()
+
+    pause 1.5
+
+    $ typing_active = False
+    $ add_message("Jinsei", "Jinsei", "Esse emoji de joinha é de tiozão hahahaha 🤣")
+    $ renpy.restart_interaction()
+
+    $ add_messag("JInsei", "Player", "")
+
+
+
+
 
 
 label reply_estella_novo1:
