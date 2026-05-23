@@ -39,14 +39,14 @@ label Capítulo_1:
 
     k normal "{cps=40}\"Que saco esse despertador, eu tenho que desativar ele se quiser dormir mais.\"{/cps}"
 
-    play audio "celularvibrando.mp3"
+    play audio "SoundsEffects/celularvibrando.mp3"
     pause 1.0
     
 
     k normal "{cps=40}\"Quem ta me ligando as 8 da manhã....\"{/cps}"
     stop audio fadeout 0.5
     k normal "{cps=40}\"Porque a Jinsei ta me ligando essa hora, meu deus do céu.\"{/cps}"
-    k normal "{cps=20}\"Oi Jinsei c-{nw}"
+    k normal "{cps=20}\"Oi Jinsei c{nw}"
     pause 0.5
     j sorisso "{cps=40}\"Boooooooom diaaaaaaaa Kioku...\"{/cps}"
     j encantadaf "{cps=40}\"Como você tá Kiokuzinho? Dormiu bem?\"{/cps}"
@@ -163,6 +163,13 @@ label prova:
     k "{cps=40}{i}Graças a Deus eu estudei pra essa prova, última prova desse semestre, depois posso ficar livre da faculdade.{/i}{/cps}"
     k "{cps=40}{i}Ta não vamo enrolar, ja é 8:15, o trêm chega as 8:40, tenho 15 minutos pra sair de casa.{/i}{/cps}"
     k "{cps=40}{i}Eu posso fazer duas coisas só, e agora o que eu faço velho, me perdi no tempo conversando com a Jinsei.{/i}{/cps}"
+
+    show screen phone_button
+    show screen phone_notification
+    show screen phone_system
+
+    $ receive_message("Jinsei", "Ei, só pra te lembrar, o professor Yuki não gosta de atrasos, então não se atrasa!!!!!!!", time="08:15")
+    $ set_pending_choice("Jinsei", "jinsei_yuki_atraso")
 
     menu:
         "Escovar os Dentes":
@@ -372,6 +379,7 @@ label investigarbarulho:
     with pixellate
     stop music fadeout 1.0
     play music "audio/Musicas/Quandoaencontrei.ogg" fadein 1.0
+    $ renpy.music.set_volume(0.5, delay=0.5, channel='music')
     k normal "{cps=40}\"Quem está aí? Precisa de ajuda?{/cps}\""
     show Stella envergonhada
     with dissolve
@@ -434,20 +442,15 @@ label investigarbarulho:
             k feliz "{cps=40}\"Quem sabe um dia eu consiga ir lá visitar.{/cps}\""
             hide Stella happy2
             show Stella feliz3
-            s feliz3 "{cps=40}\"Com certeza Kioku, quando tu for eu levo você pra conhecer Porto Alegre, e conhecer o maior do Sul.{/cps}\""
-            k divertindo "{cps=40}\"Fechado então, não sei o que você quis dizer com \'maior do Sul\' mas é isso hahahahaha.{/cps}\""
+            s feliz3 "{cps=40}\"Com certeza Kioku, quando tu for eu levo você pra conhecer Porto Alegre.{/cps}\""
             hide Stella feliz3
-            show Stella happy2
-            s happy2 "{cps=40}\"Hahahaha, é um time de futebol, o Grêmio, o time que eu torço.{/cps}\""
-            hide Stella happy2
             show Stella feliz
-            k surpreso "{cps=40}\"Ah sim, eu não entendo muito de futebol, mas quem sabe você me ensina um dia.{/cps}\""
-            hide Stella happy2
+            k divertindo "{cps=40}\"Tudo bem, prometido então haha.{/cps}\""
+            hide Stella feliz
             show Stella feliz2
-            s feliz2 "{cps=40}\"Com certeza Kioku, e de brinde eu vou te levar pra assistir um jogo hahahaha.{/cps}\""
+            s feliz2 "{cps=40}\"Você vai adorar o Brasil!!!{/cps}\""
             hide Stella feliz2
             show Stella feliz
-            k divertindo "{cps=40}\"Fechado hahahaha.{/cps}\""
             menu:
                 "Ajudar a procurar a chave":
                     $ amizade_add("estella", 3)
@@ -483,20 +486,141 @@ label investigarbarulho:
                     s feliz2 "{cps=40}\"Mas pera, como vou te chamar quando você chegar em casa?{/cps}\""
                     hide Stella feliz2
                     show Stella feliz
-                    menu:
-                        "Dar o número de celular":
-                            $ amizade_add("estella", 3)
-                            k normal "{cps=40}\"Eu posso te dar o meu número de celular, ai quando eu chegar em casa eu te dou um toque\"{/cps}"
-                            hide Stella feliz
-                            show Stella feliz2
-                            s feliz2 "{cps=40}\"Ah sim, pode ser assim então...{/cps}\""
-                            
-
-                        #"Indicar o porteiro":          
-        
-        #"Se despedir":
-
-
+                    k normal "{cps=40}\"Eu posso te dar o meu número de celular, ai quando eu chegar em casa eu te dou um toque\"{/cps}"
+                    hide Stella feliz
+                    show Stella feliz2
+                    s feliz2 "{cps=40}\"Ah sim, pode ser assim então...{/cps}\""
+                    hide Stella feliz2
+                    show Stella feliz
+                    k normal "{cps=40}\"Então tá, meu número é 1724-1021, me manda uma mensagem mais tarde...{/cps}\""
+                    hide Stella feliz
+                    show Stella feliz2
+                    s feliz2 "{cps=40}\"Okay, pode deixar, no final da tarde eu te mando mensagem...{/cps}\""
+                    hide Stella feliz2
+                    show Stella feliz
+                    k feliz "{cps=40}\"Bom, agora eu tenho que ir, se não eu perco o Trem haha{/cps}\""
+                    hide Stella feliz
+                    show Stella feliz2
+                    s feliz2 "{cps=40}\"Claro, foi um prazer te conhecer Kioku{/cps}\""
+                    hide Stella feliz2
+                    show Stella feliz3
+                    k feliz3 "{cps=40}\"Igualmente Estella, até mais.{/cps}\""
+                    hide Stella feliz3
+                    jump tremestacao
+                "Se despedir":
+                    $ trematraso = False
+                    hide Stella feliz2
+                    show Stella feliz
+                    k normal "{cps=40}\"Bom, agora eu tenho que ir, se não eu perco o Trem{/cps}\""
+                    hide Stella feliz
+                    show Stella feliz2
+                    s feliz2 "{cps=40}\"Claro, foi um prazer te conhecer Kioku{/cps}\""
+                    k feliz "{cps=40}\"Igualmente Estella, até mais.{/cps}\""
+                    hide Stella feliz2
+                    with dissolve
+                    jump tremestacao          
+        "Ajudar a procurar a chave":
+            $ amizade_add("estella", 3)
+            hide Stella feliz2
+            show Stella feliz
+            $ consequência_ativada["ajudar_estella_chave"] = True
+            k normal "{cps=40}\"Você falou que tinha perdido a sua chave né?{/cps}\""
+            hide Stella feliz
+            show Stella feliz2
+            s feliz2 "{cps=40}\"Sim, eu não faço ideia de onde eu perdi...{/cps}\""
+            hide Stella feliz2
+            show Stella feliz
+            k feliz "{cps=40}\"Ah, eu posso te ajudar depois que eu voltar da faculdade.{/cps}\""
+            hide Stella feliz
+            show Stella feliz2
+            s feliz2 "{cps=40}\"Sério mesmo?{/cps}\""
+            hide Stella feliz2
+            show Stella feliz
+            k feliz "{cps=40}\"Claro, eu não tenho nada pra fazer hoje a tarde mesmo, posso te ajudar a procurar.{/cps}\""
+            hide Stella feliz
+            show Stella happy2
+            s happy2 "{cps=40}\"Nossa, muito obrigada Kioku...{/cps}\""
+            hide Stella happy2
+            show Stella envergonhada
+            s envergonhada "{cps=40}\"Me sinto mal por ter perdido, acabei de chegar e ja fiz merda hahaha.{/cps}\""
+            hide Stella envergonhada
+            show Stella feliz
+            k feliz "{cps=40}\"Não se preocupa com isso, acontece, eu mesmo já perdi chaves antes...{/cps}\""
+            hide Stella feliz
+            show Stella envergonhada
+            s envergonhada "{cps=40}\"Tem razão hahaha{/cps}\""
+            hide Stella envergonhada
+            show Stella feliz2
+            s feliz2 "{cps=40}\"Então tá combinado...{/cps}\""
+            s feliz2 "{cps=40}\"Mas pera, como vou te chamar quando você chegar em casa?{/cps}\""
+            hide Stella feliz2
+            show Stella feliz
+            k normal "{cps=40}\"Eu posso te dar o meu número de celular, ai quando eu chegar em casa eu te dou um toque\"{/cps}"
+            hide Stella feliz
+            show Stella feliz2
+            s feliz2 "{cps=40}\"Ah sim, pode ser assim então...{/cps}\""
+            hide Stella feliz2
+            show Stella feliz
+            k normal "{cps=40}\"Então tá, meu número é 1724-1021, me manda uma mensagem mais tarde...{/cps}\""
+            hide Stella feliz
+            show Stella feliz2
+            s feliz2 "{cps=40}\"Okay, pode deixar, no final da tarde eu te mando mensagem...{/cps}\""
+            hide Stella feliz2
+            show Stella feliz
+            menu:
+                "Perguntar sobre o nome":
+                    $ amizade_add("estella", 2)
+                    k normal "{cps=40}\"Estella, que nome bonito... de onde é esse nome?{/cps}\""
+                    hide Stella feliz2
+                    show Stella happy1
+                    s happy1 "{cps=40}\"Ah obrigada Kioku, na verdade é um nome português, meus pais são do Brasil.{/cps}\""
+                    k feliz "{cps=40}\"Nossa que legal, eu sempre quis conhecer o Brasil.{/cps}\""
+                    hide Stella happy1
+                    show Stella happy2
+                    s happy2 "{cps=40}\"Você deveria mesmo Kioku, é um país lindo, cheio de praias, as comidas de lá são incriveis, as pessoas são gentis...{/cps}\""
+                    k feliz "{cps=40}\"Quem sabe um dia eu consiga ir lá visitar.{/cps}\""
+                    hide Stella happy2
+                    show Stella feliz3
+                    s feliz3 "{cps=40}\"Com certeza Kioku, quando tu for eu levo você pra conhecer Porto Alegre, e conhecer o maior do Sul.{/cps}\""
+                    k divertindo "{cps=40}\"Fechado então, não sei o que você quis dizer com 'maior do Sul' mas é isso hahaha.{/cps}\""
+                    hide Stella feliz3
+                    show Stella happy2
+                    s happy2 "{cps=40}\"Hahaha, é um time de futebol, o Grêmio, o time que eu torço.{/cps}\""
+                    hide Stella happy2
+                    show Stella feliz
+                    k surpreso "{cps=40}\"Ah sim, eu não entendo muito de futebol, mas quem sabe você me ensina um dia.{/cps}\""
+                    hide Stella happy2
+                    show Stella feliz2
+                    s feliz2 "{cps=40}\"Com certeza Kioku, e de brinde eu vou te levar pra assistir um jogo haha.{/cps}\""
+                    hide Stella feliz2
+                    show Stella feliz
+                    k divertindo "{cps=40}\"Fechado haha.{/cps}\""
+                    jump tremestacao
+                "Se despedir":
+                    $ trematraso = False
+                    hide Stella feliz2
+                    show Stella feliz
+                    k normal "{cps=40}\"Bom, agora eu tenho que ir, se não eu perco o Trem{/cps}\""
+                    hide Stella feliz
+                    show Stella feliz2
+                    s feliz2 "{cps=40}\"Claro, foi um prazer te conhecer Kioku{/cps}\""
+                    k feliz "{cps=40}\"Igualmente Estella, até mais.{/cps}\""
+                    hide Stella feliz2
+                    with dissolve
+                    jump tremestacao
+        "Se despedir":
+            $ trematraso = False
+            hide Stella feliz2
+            show Stella feliz
+            k normal "{cps=40}\"Bom, agora eu tenho que ir, se não eu perco o Trem{/cps}\""
+            hide Stella feliz
+            show Stella feliz2
+            s feliz2 "{cps=40}\"Claro, foi um prazer te conhecer Kioku{/cps}\""
+            k feliz "{cps=40}\"Igualmente Estella, até mais.{/cps}\""
+            hide Stella feliz2
+            with dissolve
+            jump tremestacao
+            
 label fimdemosecreto:
     stop music fadeout 1.0
     play music "audio/Musicas/finaldemo.mp3" fadein 1.0

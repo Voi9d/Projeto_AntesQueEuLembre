@@ -3,12 +3,12 @@ label tremestacao:
     with pixellate
     
     "{cps=40}Kioku segue em direção a estação de trêm, tentando não se atrasar e perder o mesmo.{/cps}"
-    "{cps=40}Ele sabe que se perder este trêm, ele pode perder um dos perídos da prova final, e isso pode prejudicar sua nota na matéria.{/cps}"
+    "{cps=40}Ele sabe que se perder este trêm, ele perde um dos perídos da prova final, e isso pode prejudicar sua nota na matéria.{/cps}"
     call save_point
     if trematraso == True:
         stop music fadeout 1.0
         play music "audio/Musicas/PEGAOTREMKIOKU.mp3" fadein 1.0
-        call rolar_d20 (dc=16, atributo='agilidade', titulo="Tente a Sorte: Correr para pegar o trêm", reveal_result = True)
+        call rolar_d20 (dc=17, atributo='agilidade', titulo="Correr para pegar o trêm", reveal_result = True)
         $ resultado = _return
         if resultado:
             $ trematraso = False
@@ -20,8 +20,7 @@ label tremestacao:
             "{cps=40}Ele, então, chega na plataforma, olha para os lados e.....{/cps}"
             "{cps=20}...{/cps}"
             "{cps=20}...{/cps}"
-            "{cps=40}Kioku olha ao redor e....{/cps}"
-            "Maquinista" "{cps=40}\"Ultima chamada para o trêm com destino a Universidade de Tokyo, embarque imediatamente\"{/cps}"
+            "Maquinista" "{cps=40}\"Ultima chamada para o trêm com destino a Universidade de Tokyo, embarque imediatamente.\"{/cps}"
             stop music fadeout 1.0
             play music "audio/Musicas/frozen_winter.mp3" fadein 1.0
             scene trem
@@ -31,14 +30,14 @@ label tremestacao:
             $ resultado = _return
             if resultado:
                 "{cps=40}Kioku começa a vasculhar cada assento possível no vagão que estava e, por sorte, ele encontra um assento em um dos cantos do vagão (que sorte ein Kioku).\"{/cps}"
-                k normal "{cps=40}\"Ai, ainda bem que achei um assento, nossa senhora, to exausto... Tenho que me exercitar mais meu deus.\"{/cps}"
+                k normal "{cps=40}\"Ai, ainda bem que achei um assento, nossa senhora, to exausto... Tenho que me exercitar mais, meu deus.\"{/cps}"
                 k normal "{cps=40}{i}Vou tentar descansar um pouco aqui, antes da prova...{/i}{/cps}"
                 jump escola
             else:
                 "{cps=40}Kioku começa a vasculhar cada assento possível no vagão que estava, mas infelizmente não havia mais nenhum para ele poder sentar.{/cps}"
                 k bravo "{cps=40}\"Puta merda cara, vou tem que ficar 30 minutos de pé agora... se eu tivesse chegado um pouco mais cedo...\"{/cps}"
                 k normal "{cps=40}{i}Vou tentar descansar um pouco aqui em pé, antes da prova, espero que não freie bruscamente e eu caia no chão...{/cps}"
-                "{cps=40}Não se preocupem, isso não vai acontecer{/cps}{cps=0.5}..................{/cps}"
+                "{cps=40}Não se preocupem, isso não vai acontecer{/cps}{cps=10}..................{/cps}"
                 jump escola
         else:
             "{cps=40}Kioku começa a correr, utiliza toda a sua adrenalina, suas pernas começam a formigar, esse garoto nunca correu tanto na sua vida pra pegar um trêm.{/cps}"

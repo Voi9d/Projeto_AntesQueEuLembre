@@ -9,6 +9,7 @@ default codex_relacoes_custom = {}
 # Persistent stores for amizade/romance
 default persistent.codex_amizade = {}
 default persistent.codex_romance = {}
+default persistent.codex_amizade_level5_unlocked = {}
 default persistent.codex_amizade_seed_version = 0
 default persistent.codex_descricoes = {}
 default persistent.atributos = {}
@@ -27,19 +28,18 @@ init -2 python:
     # Níveis de amizade: lista de dicionários com level, min, max e nome.
     # Edite esses valores para ajustar thresholds e nomes.
     AMIZADE_LEVELS = [
-        { 'level': -1, 'min': -100, 'max': -10, 'name': 'Desconhecidos' },
-        { 'level': 0,  'min': -9,    'max': -1,  'name': 'Inimigos' },
-        { 'level': 1,  'min': 0,    'max': 9,  'name': 'Distantes' },
+        { 'level': -1, 'min': -10000000, 'max': -10, 'name': 'Desconhecidos' },
+        { 'level': 0,  'min': 0,    'max': 9,  'name': 'Distantes' },
+        { 'level': 1,  'min': -9,    'max': -1,  'name': 'Inimigos' },
         { 'level': 2,  'min': 10,   'max': 39, 'name': 'Amigos' },
         { 'level': 3,  'min': 40,   'max': 59, 'name': 'Bons Amigos' },
-        { 'level': 4,  'min': 60,   'max': 89, 'name': 'Melhores Amigos' },
-        { 'level': 5,  'min': 90,   'max': 100, 'name': 'Quase Romance' },
-        { 'level': 6,  'min': 101,  'max': 99999, 'name': 'Romance' },
+        { 'level': 4,  'min': 60,   'max': 100, 'name': 'Melhores Amigos' },
+        { 'level': 5,  'min': 101,  'max': 99999, 'name': 'Romance' },
     ]
 
     # Nível a partir do qual a barra de Romance é desbloqueada. Edite conforme
     # desejar (pode ser um número de nível da lista acima, por exemplo 5).
-    ROMANCE_UNLOCK_LEVEL = 6
+    ROMANCE_UNLOCK_LEVEL = 5
 
     # Valores iniciais padrão por personagem (não sobrescreve saved progress).
     # Adicione aqui os pids com os pontos iniciais desejados.
@@ -59,6 +59,12 @@ init -2 python:
             persistent.codex_amizade = {}
     except Exception:
         persistent.codex_amizade = {}
+
+    try:
+        if not hasattr(persistent, 'codex_amizade_level5_unlocked'):
+            persistent.codex_amizade_level5_unlocked = {}
+    except Exception:
+        persistent.codex_amizade_level5_unlocked = {}
 
     # Runtime (non-persistent) store for amizade during a session. Changes here
     # are not written to disk until `amizade_commit()` is called.
@@ -214,9 +220,68 @@ init -2 python:
         amizade_set_points(pid, pts)
         return pts
 
+    def amizade_level5_min_points():
+        for lvl in AMIZADE_LEVELS:
+            if lvl['level'] == 5:
+                return int(lvl['min'])
+        return 101
+
+    def amizade_level4_max_points():
+        for lvl in AMIZADE_LEVELS:
+            if lvl['level'] == 4:
+                return int(lvl['max'])
+        return 100
+
+    def amizade_level5_desbloqueado(pid):
+        try:
+            return bool(persistent.codex_amizade_level5_unlocked.get(pid, False))
+        except Exception:
+            return False
+
+    def desbloquear_amizade_level5(pid, garantir_pontos=True, mostrar_notificacao=True):
+        """Libera o level 5 de amizade para um personagem.
+
+        Use na rota certa:
+            $ desbloquear_amizade_level5("jinsei")
+
+        Antes disso, pontos acima do maximo do level 4 continuam acumulando,
+        mas o nivel mostrado fica travado no 4.
+        """
+        try:
+            if not hasattr(persistent, 'codex_amizade_level5_unlocked'):
+                persistent.codex_amizade_level5_unlocked = {}
+            persistent.codex_amizade_level5_unlocked[pid] = True
+            personagens_db.setdefault(pid, {})['romance_unlocked'] = True
+
+            current_pts = amizade_get_points(pid)
+            target_pts = current_pts
+            if garantir_pontos:
+                target_pts = max(current_pts, amizade_level5_min_points())
+            amizade_set_points(pid, target_pts)
+            persistent.codex_amizade[pid] = int(target_pts)
+
+            renpy.save_persistent()
+
+            if mostrar_notificacao:
+                try:
+                    nome = personagens_db.get(pid, {}).get('nome', pid)
+                    renpy.call_screen('diario_notify', nome=nome)
+                except Exception:
+                    pass
+
+            return True
+        except Exception:
+            return False
+
+    desbloquear_level5 = desbloquear_amizade_level5
+    unlock_level5 = desbloquear_amizade_level5
+
     def amizade_get_level(pid):
         """Calcula nível atual baseado nos thresholds definidos em AMIZADE_LEVELS."""
         pts = amizade_get_points(pid)
+        if not amizade_level5_desbloqueado(pid) and pts > amizade_level4_max_points():
+            return 4
+
         for lvl in AMIZADE_LEVELS:
             if pts >= lvl['min'] and pts <= lvl['max']:
                 return lvl['level']
@@ -331,6 +396,7 @@ init -2 python:
             persistent.codex_amizade = {}
             persistent.codex_descricoes = {}
             persistent.codex_romance = {}
+            persistent.codex_amizade_level5_unlocked = {}
             persistent.achievements = {}
             persistent.atributos = {}
             persistent.atributos_confirmed = False

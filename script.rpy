@@ -240,6 +240,13 @@ define ag = Character("Augustina Floriere", color="#27AE60", image = "Augustina"
 define y = Character("Yuki Tatsuo", color="#2C3E50", image = "Yuki")
 define yn = Character("Yoshida Namikaze", color="#E67E22", image = "Yoshida")
 
+label npc_speak(character, image_tag, text):
+    show expression image_tag
+    with dissolve
+    $ character(text)
+    hide expression image_tag
+    return
+
 define dentesprimeiro = False
 define banhoprimeiro = False
 define mingaualimentadoprimeiro = False
@@ -421,53 +428,71 @@ screen atributos_distribution():
     zorder 350
     key "game_menu" action NullAction()
 
-    frame:
-        xalign 0.5
-        yalign 0.5
-        xpadding 30
-        ypadding 30
-        vbox:
-            xalign 0.5
-            yalign 0.5
-            spacing 14
+    if not atributos_confirm_dialog:
+        fixed:
+            xfill True
+            yfill True
 
-            label _("Distribuir Atributos")
-            text _("Você tem [atributos_points_remaining()] pontos restantes para gastar.")
-            text _("Mínimo: 6, máximo: 20 para cada atributo.")
-            text _("Lembre-se de clicar em Confirmar quando terminar a distribuição.")
+            frame:
+                xalign 0.5
+                yalign 0.5
+                xpadding 30
+                ypadding 30
+                background None
 
-            for attr, name in ATRIBUTOS_DEF:
-                hbox:
-                    spacing 16
-                    text _("[name]") xminimum 140
-                    text _("[atributos_edit.get(attr, 10)] (mod: [atributo_modifier_edit_value(attr):+d])")
-                    textbutton _("-") action Function(atributos_adjust_action, attr, -1)
-                    textbutton _("+") action Function(atributos_adjust_action, attr, 1)
-
-            if atributos_points_remaining() < 0:
-                text _("Erro: pontos negativos. Ajuste seus atributos.") color "#ff5555"
-
-            hbox:
-                spacing 14
-                textbutton _("Redefinir") action Function(atributos_edit_reset)
-                textbutton _("Confirmar") action SetVariable("atributos_confirm_dialog", True)
-
-            if atributos_confirm_dialog:
-                frame:
-                    background Solid("#000c")
-                    xfill True
-                    yfill True
+                vbox:
                     xalign 0.5
                     yalign 0.5
-                    padding (20, 20)
-                    vbox:
-                        spacing 14
-                        text _("Confirmação") size 26 bold True
-                        text _("Você tem certeza que distribuiu da forma que queria? Os pontos só poderão ser distribuidos novamente após cada final de ato.") size 20
+                    spacing 14
+
+                    label _("Distribuir Atributos")
+                    text _("Você tem [atributos_points_remaining()] pontos restantes para gastar.")
+                    text _("Mínimo: 6, máximo: 20 para cada atributo.")
+                    text _("Lembre-se de clicar em Confirmar quando terminar a distribuição.")
+
+                    for attr, name in ATRIBUTOS_DEF:
                         hbox:
-                            spacing 14
-                            textbutton _("Sim") action [Function(confirm_atributos_values), SetVariable("atributos_confirm_dialog", False), Return(True)]
-                            textbutton _("Não") action SetVariable("atributos_confirm_dialog", False)
+                            spacing 16
+                            text _("[name]") xminimum 140
+                            text _("[atributos_edit.get(attr, 10)] (mod: [atributo_modifier_edit_value(attr):+d])")
+                            textbutton _("-") action If(atributos_confirm_dialog, NullAction(), Function(atributos_adjust_action, attr, -1))
+                            textbutton _("+") action If(atributos_confirm_dialog, NullAction(), Function(atributos_adjust_action, attr, 1))
+
+                    if atributos_points_remaining() < 0:
+                        text _("Erro: pontos negativos. Ajuste seus atributos.") color "#ff5555"
+
+                    hbox:
+                        spacing 14
+                        textbutton _("Redefinir") action If(atributos_confirm_dialog, NullAction(), Function(atributos_edit_reset))
+                        textbutton _("Confirmar") action If(atributos_confirm_dialog, NullAction(), SetVariable("atributos_confirm_dialog", True))
+
+    else:
+        fixed:
+            xfill True
+            yfill True
+
+            frame:
+                xalign 0.5
+                yalign 0.5
+                xsize 420
+                yminimum 260
+                ypadding 20
+                background Solid("#111111ee")
+                vbox:
+                    spacing 10
+                    text _("Confirmação") size 26 bold True
+                    text _("Você tem certeza que distribuiu da forma que queria? Os pontos só poderão ser distribuidos novamente após cada final de ato.") size 20
+                    text _("Distribuição atual:") size 18 bold True
+
+                    for attr, name in ATRIBUTOS_DEF:
+                        text _("[name]: [atributos_edit.get(attr, 10)] (mod: [atributo_modifier_edit_value(attr):+d])") size 16
+
+                    text _("Pontos restantes: [atributos_points_remaining()]") size 16
+
+                    hbox:
+                        spacing 14
+                        textbutton _("Sim") xminimum 120 action [Function(confirm_atributos_values), SetVariable("atributos_confirm_dialog", False), Return(True)]
+                        textbutton _("Não") xminimum 120 action SetVariable("atributos_confirm_dialog", False)
 
 # Label utilitário para reaproveitar o minigame em diferentes cenas
 # Use: "call rolar_d20 (dc=12, modifier=2, sucesso_label=\"minha_label_sucesso\", falha_label=\"minha_label_falha\", titulo=\"Teste de Força\")"
@@ -924,7 +949,7 @@ image Cap1 = "Atos/Ato I/Capítulo_1.png"
 image Quarto1 = "Predio/QuartoManha.png"
 image Quarto2 = "Predio/QuartoMadrugada.png"
 image narrador = "blackbackground.png"
-image sonhokioku = "SonhoKioku.png"
+image sonhokioku = Movie("images/mentekioku.gif", loop=True)
 image kiokujovem = "KiokuJovem.png"
 image kiokujovemf = "KiokuJovemF.png"
 image banheiroap = "Predio/Bathroom.png"
@@ -934,12 +959,12 @@ image apartamentoexternonoite = "Predio/Apartment_Exterior_Night.png"
 image armariodetoalhas = "Predio/Futon_Room.png"
 image cozinhaap = "Predio/Small_Apartment_Kitchen.png"
 image cozinhaapnoite = "Predio/Small_Apartment_Kitchen_Night.png"
-image trem = "Cidade/Train_Day.png"
+image trem = "Cidade/Trem/Train_Day.png"
 image sala = "Predio/Sitting_Room.png"
 image salaanoite = "Predio/Sitting_Room_Dark.png"
 image escadalavanderia = "Predio/Outdoor_Stairs.png"
-image estacaodetrem = "Cidade/EstacaoTrem.png"
-image entradaescoladia = "Escola/Entrada Dia.png"
+image estacaodetrem = "Cidade/Trem/EstacaoTrem.png"
+image entradaescoladia = "Escola/Entrada/Entrada Dia.png"
 image hallescoladia = "Escola/Hall de Entrada/Hall de Entrada Dia.png"
 image escadaescoladia = "Escola/Escada/Escadas Dia.png"
 image corredordia = "Escola/Corredor Interno/Corredor Dia.png"
@@ -966,10 +991,6 @@ image minguaufeliz = "Personagens/Mingau/fuff_smug.png"
 label start:
 
     # Ensure the attribute system is initialized for a new game.
-    show screen phone_button
-    show screen phone_notification
-    show screen phone_system
-
     # Show a background. This uses a placeholder by default, but you can
     # add a file (named either "bg room.png" or "bg room.jpg") to the
     # images directory to show it.
@@ -985,10 +1006,10 @@ label start:
 
 label escolhamodo:
     # $ receive_unknown_message("Estella", "Oii, é o Kioku?", "estella_contato.png")
-    $ receive_message("Jinsei", "Ei, só pra te lembrar, o professor Yuki não gosta de atrasos, então não se atrasa!!!!!!!", time="08:15")
-    $ set_pending_choice("Jinsei", "jinsei_yuki_atraso")
     "{cps=40}Antes de começarmos, por favor escolha o modo de jogo:{/cps}"
-
+    show screen phone_button
+    show screen phone_notification
+    show screen phone_system
     
 
     # jump modojogo
@@ -1016,28 +1037,27 @@ label modojogo:
                 "Sim":
                     $ modoimersivo = True
                     "{cps=40}{i}Você escolheu o Modo Imersivo.{/i}{/cps}"
-                    jump tutorial
+                    jump escola
                 "Não, voltar":
                     jump modojogo
 
 label tutorial:
     "{cps=30}{i}Antes de começarmos, gostaria de te mostrar algumas coisas...{/i}{/cps}"
     "{cps=30}{i}Primeiro, vamos falar sobre os atributos...{/i}{/cps}"
-    "{cps=30}{i}Durante o jogo, você terá a oportunidade de distribuir pontos em 4 atributos diferentes: Carisma, Inteligência, Força e Sorte...{/i}{/cps}"
+    "{cps=30}{i}Durante o jogo, você terá a oportunidade de distribuir pontos em 4 atributos diferentes: Sorte, Agilidade, Lábia e Força...{/i}{/cps}"
     "{cps=30}{i}Cada um desses atributos pode influenciar em certas escolhas, ou até mesmo desbloquear novas opções...{/i}{/cps}"
     "{cps=30}{i}Então escolha sabiamente onde distribuir seus pontos...{/i}{/cps}"
-    "{cps=30}{i}Mas não se preocupe, as conquistas são apenas para diversão e não afetam a história principal...{/i}{/cps}"
+    "{cps=30}{i}E por último, mas não menos importante, temos o sistema de mensagens...{/i}{/cps}"
     show screen phone_button
     show screen phone_notification
     show screen phone_system
-    "{cps=30}{i}E por último, mas não menos importante, temos o sistema de mensagens...{/i}{/cps}"
     "{cps=30}{i}Está vendo este celular no canto superior direito? Ele é uma parte importante do jogo...{/i}{/cps}"
     "{cps=30}{i}Durante a história, você receberá mensagens de outros personagens, e também mensagens antigas, isso serve para dar um aprofundamento à história...{/i}{/cps}"
-    "{cps=30}{i}Durante as conversas no celular você poderá escolher respostas, e essas respostas podem influenciar a história, ou até mesmo desbloquear novas opções...{/i}{/cps}"
-    "{cps=30}{i}Então preste atenção nas mensagens que você recebe, e escolha suas respostas com cuidado...{/i}{/cps}"
     hide screen phone_button
     hide screen phone_notification
-    hide screen phone_system    
+    hide screen phone_system  
+    "{cps=30}{i}As conversas no celular você poderá escolher respostas, e essas respostas podem influenciar a história, ou até mesmo desbloquear novas opções...{/i}{/cps}"
+    "{cps=30}{i}Então preste atenção nas mensagens que você recebe, e escolha suas respostas com cuidado...{/i}{/cps}"
     "{cps=30}{i}Toda e qualquer escolha sua afeterá o futuro, então preste atenção nos detalhes...{/i}{/cps}"
     "{cps=30}{i}Agora que você sabe um pouco mais sobre os atributos e o sistema de mensagens, está na hora de começar a história...{/i}{/cps}"
     jump jogo
@@ -1058,5 +1078,5 @@ label jogo:
     "{cps=30}{i}O poder da dúvida e da certeza está nas suas mãos, cada escolha, cada memória, cada lembrança, cada amizade, cabe a você decidir se vale ou não a pena tê-las...{/i}{/cps}"
     "{cps=30}{i}Mas lembre-se, cada ação tem uma consequência...{/i}{/cps}"
     "{cps=30}{i}Então escolha sabiamente, e boa sorte...{/i}{/cps}"
-    "{cps=30}{i}Eu estarei observando, nos vemos..... em breve [nome_pc]....{/i}{/cps}"
+    "{cps=30}{i}Eu estarei observando, nos vemos.....\nem breve [nome_pc]....{/i}{/cps}"
     jump Capítulo_1

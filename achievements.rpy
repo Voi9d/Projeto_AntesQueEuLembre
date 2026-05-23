@@ -238,10 +238,10 @@ init python:
     add_achievement('trem_3', "Pare esse trem", "Perder um trêm é sempre díficil, mas sempre tem um novo", "game/images/achievements/trem2.png", hide_desc=True, hide_name=False)
     add_achievement('trem', "Bem na hora", "Será que tem lugar vago?", "game/images/achievements/trem3.png", hide_desc=True, hide_name=False)
     add_achievement('darkpassager', "Passageiro Sombrio", "Esse sentimento é bom, não é Kioku?", "game/images/achievements/darkpassager.png", hide_desc=False, hide_name=True)
-    add_achievement('killerpassager', "Passageiro Assassino", "Esse sentimento é ruim?.... Kioku", "game/images/achievements/killerpassager.png", hide_desc=False, hide_name=True)
+    add_achievement('killerpassager', "Passageiro Assassino", "Esse sentimento é ruim Kioku?", "game/images/achievements/killerpassager.png", hide_desc=False, hide_name=True)
     
     
-    # Note: removed automatic purge of unregistered persistent achievements
+    # Note: removed automatic purge of unregistered persistent achievements.
     # to avoid accidentally deleting achievements the developer expects to keep.
 
 # Auto-purge any persistent achievements that are not registered in this

@@ -222,7 +222,7 @@ screen choice(items):
 
     vbox:
         for i in items:
-            textbutton i.caption action i.action
+            textbutton i.caption action i.action sensitive (not phone_blocks_game())
 
 
 style choice_vbox is vbox
@@ -269,8 +269,8 @@ screen quick_menu():
             style_prefix "quick"
             style "quick_menu"
 
-            textbutton _("Voltar") action Rollback()
-            textbutton _("Histórico") action ShowMenu('history')
+            # textbutton _("Voltar") action Rollback()
+            # textbutton _("Histórico") action ShowMenu('history')
             # textbutton _("Pular") action Skip() alternate Skip(fast=True, confirm=True)
             # textbutton _("Automotivo") action Preference("auto-forward", "toggle")
             # Salvamento desabilitado - salvar apenas quando permitido no código
@@ -278,7 +278,7 @@ screen quick_menu():
 
             # textbutton _("Q.Salvar") action QuickSave()
             #textbutton _("Q. Carga") action QuickLoad()
-            textbutton _("Prefs") action ShowMenu('preferences')
+            # textbutton _("Prefs") action ShowMenu('preferences')
 
 
 ## Esse código garante que a tela quick_menu seja exibida no jogo, sempre que o
@@ -346,7 +346,7 @@ screen navigation():
             # Return to main menu.
             textbutton _("Menu principal") action MainMenu()
 
-        textbutton _("Personagens") action ShowMenu("personagens_codex")
+        textbutton _("Diário") action ShowMenu("personagens_codex")
 
         textbutton _("Conquistas") action ShowMenu("achievements")
 
@@ -1390,6 +1390,7 @@ screen nvl(dialogue, items=None):
 
             textbutton i.caption:
                 action i.action
+                sensitive (not phone_blocks_game())
                 style "nvl_button"
 
     add SideImage() xalign 0.0 yalign 1.0
