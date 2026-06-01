@@ -134,6 +134,19 @@ default phone_choices = {
             "label": "reply_jinsei_atraso2",
             "time": "08:15"
         }
+    ],
+
+    "jinsei_preocupada": [
+        {
+            "text": "Desculpa, acabei dormindo no Tanaka",
+            "label": "jinsei_preocupada",
+            "time": "19:00"
+        },
+        {
+            "text": "To bem, ja to em casa sim!!!",
+            "label": "jinsei_preocupada2",
+            "time": "19:00"
+        }
     ]
 
 
@@ -2166,7 +2179,7 @@ label reply_estella_novo2:
 label estella_primeiraconversa:
     call npc_type_and_send("Estella", "Você tinha me pedido para te mandar mensagem quando chegasse em casa.")
 
-    if consequência_ativada["ajudar_stella_chave"] == True:
+    if consequência_ativada["ajudar_estella_chave"] == True:
         $ renpy.restart_interaction()
 
         pause 0.5
@@ -2176,6 +2189,31 @@ label estella_primeiraconversa:
         $ renpy.restart_interaction()
 
         return
+    else:
+        call npc_type_and_send("Estella", "Teste porraaaaaaaaaaaaaaaaaaaaa")
+
+        return
+
+label jinsei_preocupada:
+    $ consequência_ativada["respondeu_jinseipreocupada"] = True
+    call send_player_message("Jinsei", "Mas agora to aqui esperando o busão, relaxa, jaja to em casa", time="19:01")
+    
+    $ consequência_ativada["jinsei_preocupada"] = True
+    $ amizade_add("Jinsei", 5)
+    $ renpy.restart_interaction()
+
+    return
+
+label jinsei_preocupada2:
+    $ consequência_ativada["respondeu_jinseipreocupada"] = True
+    call send_player_message("Jinsei", "Meu celular só descarregou, acabei de pegar ele", time="19:01")
+    
+    $ consequência_ativada["jinsei_preocupada"] = True
+    $ renpy.restart_interaction()
+
+    return
+
+
 
 
 

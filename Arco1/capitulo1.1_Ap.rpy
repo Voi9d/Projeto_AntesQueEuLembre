@@ -493,6 +493,7 @@ label investigarbarulho:
                     hide Stella feliz2
                     show Stella feliz
                     k normal "{cps=40}\"Então tá, meu número é 1724-1021, me manda uma mensagem mais tarde...{/cps}\""
+                    $ consequência_ativada["celular_estella"] = True
                     hide Stella feliz
                     show Stella feliz2
                     s feliz2 "{cps=40}\"Okay, pode deixar, no final da tarde eu te mando mensagem...{/cps}\""
@@ -681,7 +682,7 @@ label fimdemosecreto:
 
 
 
-label finaldemo:
+# label finaldemo:
     scene narrador
     "{cps=40}{i}{b}E bem assim termina nossa história... Pelo menos por enquanto{/i}{/b}{/cps}"
     "{cps=40}{i}{b}Talvez tenha ficado curta, talvez longa, tudo depende de você, jogador{/i}{/b}{/cps}"

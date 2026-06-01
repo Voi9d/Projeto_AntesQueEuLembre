@@ -53,6 +53,7 @@ label tremestacao:
                     call rolar_d20 (dc=20, atributo='agilidade', titulo="Seja Ágil: Passar pelas frestas da porta antes que ela feche.")
                     $ resultado = _return
                     if resultado:
+                        $ tremporta = True
                         $ unlock_achievement('trem_2')
                         $ trematraso = False
                         "{cps=40}Kioku corre em direção ao trêm, e com um salto impressionante, ele consegue entrar no trêm antes que as portas se fechassem completamente.{/cps}"

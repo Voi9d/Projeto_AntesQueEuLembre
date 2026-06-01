@@ -648,6 +648,8 @@ label provafinal:
             jump encontrostella
 
 label encontrostella:
+    stop music fadeout 1.0
+    play music "audio/Musicas/voceEeu.mp3" fadein 1.0
     scene escadaescoladia
     with pixellate
     if StellaAmizade == True:
@@ -665,9 +667,14 @@ label encontrostella:
         k normal "{cps=40}\"Ah sim, claro, mas não seria o presidente do grêmio estudantil?\"{/cps}"
         hide Stella happy1
         show Stella envergonhada
-        s envergonhada "{cps=40}\"Ah, é, mas ele não estava disponível porque parece que ele machucou o nariz... Ai me falaram que era para me encontrar com você...\"{/cps}"
-        k normal "{cps=40}\"Ah sim....\"{/cps}"
-        k triste "{cps=40}{i}Merda ela não pode descobrir que fui eu que machuquei o Subaru, se não vai pensar que eu sou um bully...{/i}{/cps}"
+        if subarusangue == True:
+            s envergonhada "{cps=40}\"Ah, é, mas ele não estava disponível porque parece que ele machucou o nariz... Ai me falaram que era para me encontrar com você...\"{/cps}"
+            k normal "{cps=40}\"Ah sim....\"{/cps}"
+            k triste "{cps=40}{i}Merda ela não pode descobrir que fui eu que machuquei o Subaru, se não vai pensar que eu sou um bully...{/i}{/cps}"
+        else:
+            s envergonhada "{cps=40}\"Ah, é, mas ele não estava disponível porque parece que ele teve um imprevisto... Ai me falaram que era para me encontrar com você...\"{/cps}"
+            k normal "{cps=40}\"Ah sim....\"{/cps}"
+            k triste "{cps=40}{i}Subaru tendo imprevisto? Isso não é normal....{/i}{/cps}"
         hide Stela envergonhada
         show Stela triste
         s triste "{cps=40}\"O que aconteceu Kioku? Ta tudo bem?\"{/cps}"
@@ -679,46 +686,44 @@ label encontrostella:
         hide Stella happy2
         scene narrador
         with dissolve
-        "{cps=40}Kioku, então, começa a mostrar a Faculdade para Estella, mostra corredores, salas de aulas, cantina, banheiros...{/cps}"
+        "{cps=40}Kioku, então, começa a mostrar a Faculdade para Estella\nMostra corredores\nSalas de aulas\nCantina\nBanheiros...{/cps}"
         "{cps=40}Se passa uma hora, e então eles retornam para as escadas onde haviam se encontrado.{/cps}"
         scene escadaescoladia
         with dissolve
         show Stella feliz
         with dissolve
-        s feliz "{cps=40}\"...Eai quando eu cheguei em casa, eu vejo ele embaixo da cama hahahahahaha{/cps}\""
+        s feliz "{cps=40}\"...Eai quando eu cheguei em casa, eu vejo ele embaixo da cama hahahahahaha...{/cps}\""
         hide Stella feliz 
         show Stella happy2
-        s happy2 "{cps=40}\"Esse tempo todo, ele estava embaixo da minha cama, e eu dando voltas e voltas no meu bairro, hahahahah{/cps}\""
+        s happy2 "{cps=40}\"Esse tempo todo, ele estava embaixo da minha cama, e eu dando voltas e voltas no meu bairro, hahahahah....{/cps}\""
         k divertindo "{cps=40}\"Hahahaha, você deve ter achado engraçado na hora né?\"{/cps}"
-        s happy2 "{cps=40}\"Na hora eu briguei com ele porque ele não me respondia, nem quando eu chamava com a ração hahahaha{/cps}\""
+        s happy2 "{cps=40}\"Na hora eu briguei com ele porque ele não me respondia, nem quando eu chamava com a ração hahahaha.{/cps}\""
         s happy2 "{cps=40}\"Mas depois eu achei engraçado, porque ele estava lá, e eu nem tinha percebido...\"{/cps}"
         hide Stella happy2
         show Stella feliz
         s feliz "{cps=40}\"Aiai, nossa, nem vi o tempo passar, obrigada por me mostrar a Faculdade Kioku, eu adorei conhecer tudo isso...\"{/cps}"
-        menu:
-            "Retribuir a gentileza":
-                $ amizade_add("stella", 5)
-                k feliz "{cps=40}\"Ah, que bom que você gostou Estella, eu também adorei te mostrar a Faculdade e conversar com você...\"{/cps}"
-                hide Stella feliz
-                show Stella envergonhada
-                s envergonhada "{cps=40}\"...\"{/cps}"
-                s envergonhada "{cps=40}\"Foi legal conversar com você também Kioku...\"{/cps}"
-                hide Stella envergonhada
-                show Stella feliz 
-                s feliz "{cps=40}\"Bem, agora eu tenho que passar no mercado...\"{/cps}"
-                if consequência_ativada["ajudar_estella_chave"] == True:
-                    s feliz "{cps=40}\"Depois quando voltar pra casa, eu te mando uma mensagem para você me ajudar a procurar a chave de hoje de manhã, se lembra?\"{/cps}"
-                    k feliz "{cps=40}\"Ah, claro, pode deixar, depois me avisa quando for procurar a chave...\"{/cps}"
-                    s feliz "{cps=40}\"Obrigada Kioku, bem, então, até mais tarde...\"{/cps}"
-                    k feliz "{cps=40}\"Até mais tarde Estella...\"{/cps}"
-                    hide Stella feliz     
-                else:
-                    s feliz "{cps=40}\"De qualquer forma, obrigada Kioku por me apresentar e pela conversa que tivemos, eu adorei.\"{/cps}"
-                    k feliz "{cps=40}\"Claro Estella, eu que agradeço por ter me deixado te mostrar a Faculdade, quando precisar de algo pode falar comigo.\"{/cps}"
-                    s feliz "{cps=40}\"Obrigada Kioku, pode deixar...\"{/cps}"            
-                    s feliz "{cps=40}\"Bem, então, até mais Kioku, nos vemos por aí...\"{/cps}"
-                    k feliz "{cps=40}\"Até mais Estella...\"{/cps}"
-                    hide Stella feliz  
+        $ amizade_add("stella", 5)
+        k feliz "{cps=40}\"Ah, que bom que você gostou Estella, eu também adorei te mostrar a Faculdade e conversar com você...\"{/cps}"
+        hide Stella feliz
+        show Stella envergonhada
+        s envergonhada "{cps=40}\"...\"{/cps}"
+        s envergonhada "{cps=40}\"Foi legal conversar com você também Kioku...\"{/cps}"
+        hide Stella envergonhada
+        show Stella feliz 
+        s feliz "{cps=40}\"Bem, agora eu tenho que passar no mercado...\"{/cps}"
+        if consequência_ativada["ajudar_estella_chave"] == True:
+            s feliz "{cps=40}\"Depois quando voltar pra casa, eu te mando uma mensagem para você me ajudar a procurar a chave de hoje de manhã, se lembra?\"{/cps}"
+            k feliz "{cps=40}\"Ah, claro, pode deixar, depois me avisa quando for procurar a chave...\"{/cps}"
+            s feliz "{cps=40}\"Obrigada Kioku, bem, então, até mais tarde...\"{/cps}"
+            k feliz "{cps=40}\"Até mais tarde Estella...\"{/cps}" 
+            jump celularestella 
+        else:
+            s feliz "{cps=40}\"De qualquer forma, obrigada Kioku por me apresentar e pela conversa que tivemos, eu adorei.\"{/cps}"
+            k feliz "{cps=40}\"Claro Estella, eu que agradeço por ter me deixado te mostrar a Faculdade, quando precisar de algo pode falar comigo.\"{/cps}"
+            s feliz "{cps=40}\"Obrigada Kioku, pode deixar...\"{/cps}"            
+            s feliz "{cps=40}\"Bem, então, até mais Kioku, nos vemos por aí...\"{/cps}"
+            k feliz "{cps=40}\"Até mais Estella...\"{/cps}"
+            jump celularestella  
     else: 
         "???" "{cps=40}\"Oi.... Com licença....{/cps}"
         "{cps=40}Kioku rapidamente se vira para ver quem estava falando com ele{/cps}"
@@ -727,14 +732,9 @@ label encontrostella:
         "???" "{cps=40}\"O-oi, desculpa te incomodar, mas me falaram que era você que iria me apresentar a Faculdade...{/cps}\""
         scene narrador
         with dissolve
-        k normal "{cps=40}\"Ah, sim, claro, mas não seria o presidente do grêmio estudantil?\"{/cps}"
-        hide Stella feliz
-        show Stella envergonhada
-        "???" "{cps=40}\"Ah, é, mas ele não estava disponível porque parece que ele machucou o nariz... Ai me falaram que era para me encontrar com você...\"{/cps}"
-        k normal "{cps=40}\"Ah sim....\"{/cps}"
+        k normal "{cps=40}\"Ah, sim, claro.\"{/cps}"
         k normal "{cps=40}\"Mas bem, de qualquer forma, eu posso sim te apresentar a Faculdade, muito prazer, sou Kioku Aida, mas pode me chamar apenas de Kioku.\"{/cps}"
-        hide Stella envergonhada
-        show Stella feliz
+        $ desbloquear_Personagem("estella")
         s feliz "{cps=40}\"Muito prazer Kioku, eu sou Estella Nascimento, fui transferida para a Faculdade este ano.\"{/cps}"
         menu:
             "Perguntar sobre o nome":
@@ -742,6 +742,122 @@ label encontrostella:
                 hide Stella feliz 
                 show Stella happy1
                 s happy1 "{cps=40}\"Obrigada Kioku, é sim diferente, na verdade, não sou japonesa, eu sou brasileira.\"{/cps}"
-                k surpreso "{cps=40}\"Nossa que legal, eu sempre quis conhecer o Brasil...\"{/cps}"
+                k surpreso "{cps=40}\"Nossa que legal, mas você nasceu no Japão?\"{/cps}"
+                hide Stella happy1
+                show Stella envergonhada
+                s envergonhada "{cps=40}\"Sim, mas meus pais são brasileiros, eles vieram para cá quando eu ainda não tinha nascido haha...\"{/cps}"
+                k normal "{cps=40}\"Ah, entendi... Que legal, deve ser uma experiência interessante crescer aqui com uma cultura tão diferente da dos seus pais...\"{/cps}"
+                hide Stella envergonhada
+                show Stella feliz
+                s feliz "{cps=40}\"É, não conheço muito a cultura brasileira, mas eu gosto bastante, e meus pais sempre me contam sobre o Brasil, e me ensinam um pouco de português...\"{/cps}"
+                menu:
+                    "Perguntar sobre a transferência":
+                        k feliz "{cps=40}\"Ah, que legal, mas ei... O que te fez se transferir para cá?\"{/cps}"
+                        hide Stella feliz 
+                        show Stella happy1
+                        s happy1 "{cps=40}\"Ah, é uma longa história... Mas resumindo bastante, eu tive alguns problemas na minha antiga escola, e eu precisava de um recomeço, então meus pais decidiram me transferir pra cá...\"{/cps}"
+                        k normal "{cps=40}\"Ah, entendi... Bom, espero que aqui seja um bom recomeço pra você então...\"{/cps}"
+                        hide Stella happy1
+                        show Stella feliz
+                        s feliz "{cps=40}\"Obrigada Kioku, eu espero que sim também...\"{/cps}"
+                        k feliz "{cps=40}\"Bem vamos iniciar o Tour da Faculdade então?\"{/cps}"
+                        hide Stella feliz
+                        show Stella happy1
+                        s happy1 "{cps=40}\"Claro, vamo lá!\"{/cps}"
+                    "Começar o tour da faculdade":
+                        k feliz "{cps=40}\"Ah, que legal, mas acho que seria melhor eu te mostrar a Faculdade, o que acha?\"{/cps}"
+                        hide Stella feliz 
+                        show Stella happy1
+                        s happy1 "{cps=40}\"Ah, sim, claro, eu adoraria conhecer a Faculdade...\"{/cps}"
+                        hide Stella happy1
+                        show Stella feliz
+                        k feliz "{cps=40}\"Então vamos lá!\"{/cps}"
+            "Perguntar sobre a transferência":
+                k normal "{cps=40}\"O que te fez se transferir para cá?\"{/cps}"
+                hide Stella feliz 
+                show Stella happy1
+                s happy1 "{cps=40}\"Ah, é uma longa história... Mas resumindo bastante, eu tive alguns problemas na minha antiga escola, e eu precisava de um recomeço, então meus pais decidiram me transferir pra cá...\"{/cps}"
+                k normal "{cps=40}\"Ah, entendi... Bom, espero que aqui seja um bom recomeço pra você então...\"{/cps}"
+                hide Stella happy1
+                show Stella feliz
+                s feliz "{cps=40}\"Obrigada Kioku, eu espero que sim também...\"{/cps}"
+                menu:
+                    "Perguntar sobre o nome":
+                        k normal "{cps=40}\"Estella... Que nome bonito, é diferente.\"{/cps}"
+                        hide Stella feliz 
+                        show Stella happy1
+                        s happy1 "{cps=40}\"Obrigada Kioku, é sim diferente, na verdade, não sou japonesa, eu sou brasileira!\"{/cps}"
+                        k surpreso "{cps=40}\"Nossa que legal, mas você nasceu no Japão?\"{/cps}"
+                        hide Stella happy1
+                        show Stella envergonhada
+                        s envergonhada "{cps=40}\"Sim, mas meus pais são brasileiros, eles vieram para cá quando eu ainda não tinha nascido haha...\"{/cps}"
+                        k normal "{cps=40}\"Ah, entendi... Que legal, deve ser uma experiência interessante crescer aqui com uma cultura tão diferente da dos seus pais...\"{/cps}"
+                        hide Stella envergonhada
+                        show Stella feliz
+                        s feliz "{cps=40}\"É, não conheço muito a cultura brasileira, mas eu gosto bastante, e meus pais sempre me contam sobre o Brasil, e me ensinam um pouco de português...\"{/cps}"
+                    "Começar o tour da faculdade":
+                        k feliz "{cps=40}\"Bom que tal eu começar o Tour pela Faculdade, o que acha?\"{/cps}"
+                        hide Stella feliz 
+                        show Stella happy1
+                        s happy1 "{cps=40}\"Ah, sim, claro, eu adoraria conhecer a Faculdade...\"{/cps}"
+                        hide Stella happy1
+                        show Stella feliz
+                        k feliz "{cps=40}\"Então vamos lá!\"{/cps}"
+        scene narrador
+        with dissolve
+        "{cps=40}Kioku, então, começa a mostrar a Faculdade para Estella\nMostra corredores\nSalas de aulas\nCantina\nBanheiros...{/cps}"
+        "{cps=40}Se passa uma hora, e então eles retornam para as escadas onde haviam se encontrado.{/cps}"
+        scene escadaescoladia
+        with dissolve
+        show Stella feliz
+        with dissolve
+        s feliz "{cps=40}\"...Eai quando eu cheguei em casa, eu vejo ele embaixo da cama hahahahahaha...{/cps}\""
+        hide Stella feliz 
+        show Stella happy2
+        s happy2 "{cps=40}\"Esse tempo todo, ele estava embaixo da minha cama, e eu dando voltas e voltas no meu bairro, hahahahah....{/cps}\""
+        k divertindo "{cps=40}\"Hahahaha, você deve ter achado engraçado na hora né?\"{/cps}"
+        s happy2 "{cps=40}\"Na hora eu briguei com ele porque ele não me respondia, nem quando eu chamava com a ração hahahaha.{/cps}\""
+        s happy2 "{cps=40}\"Mas depois eu achei engraçado, porque ele estava lá, e eu nem tinha percebido...\"{/cps}"
+        hide Stella happy2
+        show Stella feliz
+        s feliz "{cps=40}\"Aiai, nossa, nem vi o tempo passar, obrigada por me mostrar a Faculdade Kioku, eu adorei conhecer tudo isso...\"{/cps}"
+        $ amizade_add("stella", 5)
+        k feliz "{cps=40}\"Ah, que bom que você gostou Estella, eu também adorei te mostrar a Faculdade e conversar com você...\"{/cps}"
+        hide Stella feliz
+        show Stella envergonhada
+        s envergonhada "{cps=40}\"...\"{/cps}"
+        s envergonhada "{cps=40}\"Foi legal conversar com você também Kioku...\"{/cps}"
+        hide Stella envergonhada
+        show Stella feliz 
+        s feliz "{cps=40}\"Bem, agora eu tenho que passar no mercado...\"{/cps}"
+        s feliz "{cps=40}\"De qualquer forma, obrigada Kioku por me apresentar e pela conversa que tivemos, eu adorei.\"{/cps}"
+        k feliz "{cps=40}\"Claro Estella, eu que agradeço por ter me deixado te mostrar a Faculdade, quando precisar de algo pode falar comigo.\"{/cps}"
+        s feliz "{cps=40}\"Obrigada Kioku, pode deixar...\"{/cps}"            
+        s feliz "{cps=40}\"Bem, então, até mais Kioku, nos vemos por aí...\"{/cps}"
+        k feliz "{cps=40}\"Até mais Estella...\"{/cps}"
+        jump celularestella  
+                
+                
+
+label celularestella:
+    if consequência_ativada["celular_estella"] == True:
+        jump irembora
+    else:
+        s feliz "{cps=40}\"Ei Kioku, antes de você ir.\"{/cps}"
+        s feliz "{cps=40}\"Você tem algum número de telefone pra me passar? Sabe, pra gente conversar melhor sobre a faculdade e tudo mais.\"{/cps}"
+        k feliz "{cps=40}\"Ah, claro, eu te passo meu número...\"{/cps}"
+        s feliz "{cps=40}\"Ah, obrigada Kioku.\"{/cps}"
+        k feliz "{cps=40}\"Claro, meu número é 1724-1021, me manda uma mensagem mais tarde...\"{/cps}"
+        s feliz "{cps=40}\"Pode deixar, eu te mando mensagem sim...\"{/cps}"
+        hide Stella feliz
+        show Stella feliz2
+        s feliz2 "{cps=40}\"Muito obrigada de novo Kioku, até mais.\"{/cps}"
+        k feliz "{cps=40}\"Até Estella.\"{/cps}"
+    jump irembora
+    
+    
+
+
+
 
 

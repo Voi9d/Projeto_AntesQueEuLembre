@@ -166,6 +166,8 @@ init python:
 ##
 ## O ícone exibido na barra de tarefas ou no dock.
 
+define discord_link = "https://discord.gg/wp3UTT7q8t"
+
 define config.window_icon = "gui/window_icon.png"
 
 

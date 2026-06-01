@@ -38,7 +38,6 @@ init python:
     #jinseiamizade = 40
     #stellaamizade = 0
     #subaruamizade = 0
-    augustinaignora = False
     subarusangue = False
     subaruignorado = False
     modohistoria = False
@@ -191,6 +190,9 @@ default consequência_ativada = {
     "ajuda_jinsei_subaru": False,
     "naoajuda_jinsei_subaru": False,
     "ajudar_estella_chave": False,
+    "celular_estella": False,
+    "jinsei_preocupada": False,
+    "respondeu_jinseipreocupada": False
 }
 
 screen final_text_screen():
@@ -239,6 +241,8 @@ define si = Character("Subaru Ichida", color="#F5A623", image = "Subaru")
 define ag = Character("Augustina Floriere", color="#27AE60", image = "Augustina")
 define y = Character("Yuki Tatsuo", color="#2C3E50", image = "Yuki")
 define yn = Character("Yoshida Namikaze", color="#E67E22", image = "Yoshida")
+define kj = Character("Kenji", color="#C0392B", image = "Kenji")
+define ph = Character("Phiona", color="#8E44AD", image = "Phiona")
 
 label npc_speak(character, image_tag, text):
     show expression image_tag
@@ -259,6 +263,8 @@ define tomarcafesegundo = False
 
 define trematraso = False
 define provaatraso = False
+
+define tremporta = False
 
 
 
@@ -938,9 +944,58 @@ image Stella smug:
 
 image side Yuki normal = im.Scale("images/Personagens/Yuki Tatsuo/YukiTatsuo.png", 470, 570, xoffset=0, yoffset=100)
 
-image side Augustina feliz = im.Scale("images/Personagens/Augustina Floriere/Augustinafeliz.png", 244.5, 554, xoffset=100, yoffset=100)
-image side Augustina normal = im.Scale("images/Persoangens/Augustina Floriere/Augustinanormal.png", 244.5, 554, xoffset=100, yoffset=100)
+image side Kenji normal = im.Scale("images/Personagens/Kenji/Kenji.png", 500, 750, xoffset=0, yoffset=40)
 
+image Kenji normal:
+    "images/Personagens/Kenji/Kenji.png"
+    zoom 2.0
+    xalign 0.5
+    yalign 0.5
+
+image Polvo normal:
+    "images/Personagens/Kioku Aida/#####/Sr. Polvicio.png"
+    zoom 0.45
+    xalign 0.5
+    yalign 0.5 
+
+
+image side Phiona feliz = im.Scale("images/Personagens/Kioku Aida/Phiona_feliz.png.png", 470, 570, xoffset=0, yoffset=100)
+
+image side Phiona feliz2 = im.Scale("images/Personagens/Kioku Aida/Phiona_feliz2.png", 470, 570, xoffset=0, yoffset=100)
+
+image side Phiona feliz3 = im.Scale("images/Personagens/Kioku Aida/Phiona_feliz3.png", 470, 570, xoffset=0, yoffset=100)
+
+image side Phiona normal = im.Scale("images/Personagens/Kioku Aida/Phiona.png", 470, 570, xoffset=0, yoffset=100)
+
+image Phiona feliz:
+    "images/Personagens/Kioku Aida/Phiona_feliz.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0
+
+image Phiona feliz2:
+    "images/Personagens/Kioku Aida/Phiona_feliz2.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0
+
+image Phiona feliz3:
+    "images/Personagens/Kioku Aida/Phiona_feliz3.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0
+
+image Phiona normal:
+    "images/Personagens/Kioku Aida/Phiona.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0
+
+image Kiokujovem normal:
+    "images/Personagens/Kioku Aida/jovem/KiokuJovem.png"
+    zoom 0.5
+    xalign 0.5
+    yalign 1.0
 
 
 
@@ -968,13 +1023,14 @@ image entradaescoladia = "Escola/Entrada/Entrada Dia.png"
 image hallescoladia = "Escola/Hall de Entrada/Hall de Entrada Dia.png"
 image escadaescoladia = "Escola/Escada/Escadas Dia.png"
 image corredordia = "Escola/Corredor Interno/Corredor Dia.png"
+image corredorexdia = "Escola/Corredor Exterior/School_Hallway_Day.png"
 image salaauladia = "Escola/Sala de Aula/Sala de Aula Dia.png"
 image saladiretordia = "Escola/Diretor/Sala do Diretor Dia.png"
 image salaprofessordia = "Escola/Sala dos Professores/Sala dos Professores Dia.png"
 image vestiarioescoladia = "Escola/Vestiário/Vestiário Dia.png"
 image refeitorioescoladia = "Escola/Refeitório/Refeitório Dia.png"
 image patioescoladia = "Escola/Pátio/Pátio1 Dia.png"
-image patioescoladia2 = "Escola/Pátio/Pátio2 Dia.png"
+image patioescoladia2 = "Escola/Pátio 2/Pátio2 Dia.png"
 image banheiroescoladia = "Escola/Banheiro/Banheiro Dia.png"
 image biblioteca1 = "Escola/Biblioteca/Biblioteca_1.png"
 image biblioteca2 = "Escola/Biblioteca/Biblioteca_2.png"
@@ -982,6 +1038,23 @@ image biblioteca3 = "Escola/Biblioteca/Biblioteca_3.png"
 image hospital = "Cidade/Hospital/quarto_hospital.png"
 image maekioku = "Personagens/Kioku Aida/Mae_Kioku.png"
 image harutachi = "Personagens/Kioku Aida/HaruTachibana.png"
+image restaurantemeiodia = "Cidade/Restaurante/restaurante_dia2.png"
+image restaurantemeiodiacomida = "Cidade/Restaurante/restaurante_dia2comida.png"
+image restaurantetarde = "Cidade/Restaurante/restaurante_tarde.png"
+image ruanoiteverao = "Cidade/Rua/Rua_Verao_Noite.png"
+image estacaoonibusnoite = "Cidade/Parada de Onibus/parada_onibus_noite1.png"
+
+# Casa Antiga do Kioku
+image casakioku = "Antiga Casa/outside1.jpg"
+image casakiokuhoje = "Antiga Casa/outside2.jpg"
+image casakiokubanheiro = "Antiga Casa/bathroom.jpg"
+image casakiokucozinha = "Antiga Casa/dining_kitchen.jpg"
+image casakiokuentrada = "Antiga Casa/entrance.jpg"
+image casakiokucorredor = "Antiga Casa/hallway.jpg"
+image casakiokusaladeestar = "Antiga Casa/lounge.jpg"
+image casakiokuquartomae = "Antiga Casa/master bedroom.jpg"
+image casakiokuquarto = "Antiga Casa/single bedroom.jpg"
+image chegoutradekioku = "Personagens/Kioku Aida/#####/chegoutardeKioku.png"
 
 image mingaudormindo = "Personagens/Mingau/fuff_zzz.png"
 image minguaufeliz = "Personagens/Mingau/fuff_smug.png"
@@ -1007,12 +1080,9 @@ label start:
 label escolhamodo:
     # $ receive_unknown_message("Estella", "Oii, é o Kioku?", "estella_contato.png")
     "{cps=40}Antes de começarmos, por favor escolha o modo de jogo:{/cps}"
-    show screen phone_button
-    show screen phone_notification
-    show screen phone_system
-    
 
-    # jump modojogo
+
+    jump finaldemo
 
 label modojogo:
     menu:

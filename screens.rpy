@@ -337,6 +337,8 @@ screen navigation():
 
         textbutton _("Preferências") action ShowMenu("preferences")
 
+        textbutton "Discord" action OpenURL(discord_link)
+
         if _in_replay:
 
             textbutton _("Fim da reprodução") action EndReplay(confirm=True)
