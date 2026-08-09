@@ -14,6 +14,8 @@
 
 define config.name = _("Antes que eu Lembre")
 
+define config.default_fullscreen = True
+define config.window = "auto"
 
 ## Determina se o título fornecido acima será mostrado na tela do menu
 ## principal. Defina como False para ocultar o título.

@@ -53,7 +53,8 @@ default contact_display_names = {
 
 default contact_avatars = {
     "Jinsei": "images/ui/fotos_contatos/jinsei_contato.png",
-    "Estella": "images/ui/fotos_contatos/estella_contato.png"
+    "Estella": "images/ui/fotos_contatos/estella_contato.png",
+    "Akira": "images/ui/fotos_contatos/who_are_you.png"
 }
 
 default player_typing_active = False
@@ -74,10 +75,12 @@ default current_game_date = "2026-04-28"
 
 default phone_open = False
 default phone_screen = "home"
+default phone_demo_locked = False
 
 default archive_password = "0405"
 default archive_input = ""
 default archive_unlocked = False
+default private_chats_enabled = False
 
 default phone_notify_active = False
 default phone_notify_sender = ""
@@ -114,13 +117,69 @@ init python:
 default phone_choices = {
     "estella_novo_contato": [
         {
-            "text": "Quem é?",
-            "label": "reply_estella_novo1"
+            "text": "Oi Estella, é o número certo sim 👍",
+            "label": "reply_estella_novo1",
+            "time": "19:21"
         },
         {
-            "text": "Sim, é meu número.",
-            "label": "reply_estella_novo2"
+            "text": "Sim, é meu número!!",
+            "label": "reply_estella_novo2",
+            "time": "19:21"
         },
+    ],
+
+
+
+    "jinsei_preocupada": [
+        {
+            "text": "Desculpa, acabei dormindo no Tanaka",
+            "label": "jinsei_preocupada",
+            "time": "19:00"
+        },
+        {
+            "text": "To bem, ja to em casa sim!!!",
+            "label": "jinsei_preocupada2",
+            "time": "19:00"
+        }
+    ],
+
+    "jinsei_mensagemManhã_dia2": [
+        {
+            "text": "Oi, dormi bem sim!!!",
+            "label": "jinsei_mensagemManhã_dia2_1",
+            "time": "11:16"
+        },
+        {
+            "text": "Oi, acordei agora!!!",
+            "label": "jinsei_mensagemManhã_dia2_2",
+            "time": "11:16"
+        }
+    ],
+
+    "estella_escolha_02": [
+        {
+            "text": "O Problema, é que eu acabei dormindo durante a tarde inteira no restaurante kkkkk",
+            "label": "reply_estella_escolha_02_1",
+            "time": "19:25"
+        },
+        {
+            "text": "Ai, hoje eu não consigo...",
+            "label": "reply_estella_escolha_02_2",
+            "time": "19:25"
+        },
+    ],
+
+    "estella_escolha_03": [
+        {
+            "text": "Olha, eu to quase dormindo aqui, porque?",
+            "label": "reply_estella_escolha_02_1",
+            "time": "19:25"
+        },
+        {
+            "text": "To bem cansado, mas pode falar.",
+            "label": "reply_estella_escolha_02_2",
+            "time": "19:25"
+        }
     ],
 
     "jinsei_yuki_atraso": [
@@ -136,18 +195,18 @@ default phone_choices = {
         }
     ],
 
-    "jinsei_preocupada": [
+    "estella_verdade": [
         {
-            "text": "Desculpa, acabei dormindo no Tanaka",
-            "label": "jinsei_preocupada",
-            "time": "19:00"
+            "text": "Eu fui almoçar no Tanaka, e acabei capotando depois que comi, e quando vi, era de noite kkkkkk",
+            "label": "reply_estella_verdade1",
+            "time": "19:28"
         },
         {
-            "text": "To bem, ja to em casa sim!!!",
-            "label": "jinsei_preocupada2",
-            "time": "19:00"
+            "text": "Fui almoçar, e depois que eu vi ja era de noite kkkk",
+            "label": "reply_estella_verdade2",
+            "time": "19:28"
         }
-    ]
+    ],
 
 
 }
@@ -1222,7 +1281,7 @@ init python:
     def begin_player_typing(contact, text, label_name=None):
         store.player_typing_active = True
         store.player_typing_contact = contact
-        store.player_typing_target = text
+        store.player_typing_target = game_tr(text)
         store.player_typing_shown = ""
         store.player_typing_label = label_name
         store.phone_chat_scroll_bottom = True
@@ -1235,6 +1294,7 @@ init python:
 
             if current_len < target_len:
                 store.player_typing_shown = store.player_typing_target[:current_len + 1]
+                store.phone_chat_scroll_bottom = True
             else:
                 store.player_typing_active = False
 
@@ -1256,7 +1316,7 @@ init python:
 
 label player_choice_send:
     $ pending_choices.pop(current_chat, None)
-    call send_player_message(current_chat, player_choice_text, player_choice_date, player_choice_time)
+    call send_player_message(current_chat, player_choice_text, player_choice_date, player_choice_time) from _call_send_player_message
     $ next_label = player_choice_target_label
     $ player_choice_text = ""
     $ player_choice_target_label = None
@@ -1273,7 +1333,7 @@ label phone_choice_send_context:
     show screen phone_notification
     show screen phone_system
 
-    call player_choice_send
+    call player_choice_send from _call_player_choice_send
 
     return
 
@@ -1380,6 +1440,7 @@ init python:
             time = ""
         store.chats[contact].append({
             "sender": sender,
+            "raw_text": text,
             "text": text,
             "date": date,
             "time": time
@@ -1402,19 +1463,39 @@ init python:
             11: "novembro",
             12: "dezembro"
         }
+        english = getattr(renpy.game.preferences, "language", None) == "english"
+        if english:
+            months = {
+                1: "January",
+                2: "February",
+                3: "March",
+                4: "April",
+                5: "May",
+                6: "June",
+                7: "July",
+                8: "August",
+                9: "September",
+                10: "October",
+                11: "November",
+                12: "December"
+            }
 
         msg_date = datetime.datetime.strptime(date_text, "%Y-%m-%d").date()
         today = datetime.datetime.strptime(store.current_game_date, "%Y-%m-%d").date()
 
         if msg_date == today:
-            return "Hoje"
+            return "Today" if english else "Hoje"
 
         if msg_date == today - datetime.timedelta(days=1):
-            return "Ontem"
+            return "Yesterday" if english else "Ontem"
 
         if msg_date.year == today.year:
+            if english:
+                return "%s %d" % (months[msg_date.month], msg_date.day)
             return "%d de %s" % (msg_date.day, months[msg_date.month])
 
+        if english:
+            return "%s %d, %d" % (months[msg_date.month], msg_date.day, msg_date.year)
         return "%d de %s de %d" % (msg_date.day, months[msg_date.month], msg_date.year) 
 
     def get_chat_preview(text, max_chars=40):
@@ -1423,6 +1504,17 @@ init python:
         if len(text) <= max_chars:
             return text
         return text[:max_chars - 3].rstrip() + "..."
+
+    def phone_message_text(msg):
+        try:
+            return game_tr(msg.get("raw_text", msg.get("text", "")))
+        except Exception:
+            return game_tr(msg.get("text", ""))
+
+    def phone_notification_title(sender):
+        if getattr(renpy.game.preferences, "language", None) == "english":
+            return "%s sent a message" % sender
+        return "%s enviou uma mensagem" % sender
 
     def normalize_contact_id(contact):
         if contact in ("star_contact", "\u661f", "\u2b50"):
@@ -1502,14 +1594,14 @@ init python:
         if contact_id not in store.contact_avatars:
             store.contact_avatars[contact_id] = "images/ui/fotos_contatos/" + avatar_file
 
-    def receive_unknown_message(contact_id, text, avatar_file="default.png"):
+    def receive_unknown_message(contact_id, text, avatar_file="default.png", time=None):
         register_contact(contact_id, "???", avatar_file)
 
-        add_message(contact_id, contact_id, text)
+        add_message(contact_id, contact_id, text, time=time)
 
         store.phone_notify_active = True
         store.phone_notify_sender = "???"
-        store.phone_notify_text = text
+        store.phone_notify_text = game_tr(text)
 
         renpy.restart_interaction()
 
@@ -1520,7 +1612,7 @@ init python:
 
         store.phone_notify_active = True
         store.phone_notify_sender = get_contact_name(contact_id)
-        store.phone_notify_text = text
+        store.phone_notify_text = game_tr(text)
 
         renpy.restart_interaction()
 
@@ -1531,7 +1623,36 @@ init python:
         renpy.restart_interaction()
 
     def set_pending_choice(contact, choice_id):
+        contact = normalize_contact_id(contact)
         store.pending_choices[contact] = choice_id
+        renpy.restart_interaction()
+
+    def cancel_pending_choice(contact=None, choice_id=None):
+        """Cancela uma escolha pendente do celular.
+
+        Uso:
+            $ cancel_pending_choice("Estella")
+            $ cancel_pending_choice("Estella", "estella_novo_contato")
+            $ cancel_pending_choice()  # cancela todas
+        """
+        if contact is None:
+            store.pending_choices.clear()
+            renpy.restart_interaction()
+            return True
+
+        contact = normalize_contact_id(contact)
+
+        if contact not in store.pending_choices:
+            return False
+
+        if choice_id is not None and store.pending_choices.get(contact) != choice_id:
+            return False
+
+        store.pending_choices.pop(contact, None)
+        renpy.restart_interaction()
+        return True
+
+    expire_pending_choice = cancel_pending_choice
 
 # =========================================
 # ÍCONE GLOBAL DO CELULAR
@@ -1545,20 +1666,28 @@ screen phone_button():
         imagebutton:
             idle "images/ui/celular.png"
             hover "images/ui/celular.png"
-            action [
-                SetVariable("phone_open", True),
-                SetVariable("phone_screen", "home"),
-                Function(clear_notification)
-            ]
+            action If(
+                phone_demo_locked,
+                NullAction(),
+                [
+                    SetVariable("phone_open", True),
+                    SetVariable("phone_screen", "home"),
+                    Function(clear_notification)
+                ]
+            )
             at phone_icon_shake
     else:
         imagebutton:
             idle "images/ui/celular.png"
             hover "images/ui/celular.png"
-            action [
-                SetVariable("phone_open", True),
-                SetVariable("phone_screen", "home")
-            ]
+            action If(
+                phone_demo_locked,
+                NullAction(),
+                [
+                    SetVariable("phone_open", True),
+                    SetVariable("phone_screen", "home")
+                ]
+            )
             at phone_icon_idle
 
 # =========================================
@@ -1571,6 +1700,8 @@ screen phone_notification():
 
     if phone_notify_active:
 
+        timer 4.0 action Function(clear_notification)
+
         frame:
             at notif_slide
             xsize 520
@@ -1581,7 +1712,7 @@ screen phone_notification():
             vbox:
                 spacing 5
 
-                text "[phone_notify_sender] enviou uma mensagem" size 24 color "#ffffff"
+                text phone_notification_title(phone_notify_sender) size 24 color "#ffffff"
                 text "[phone_notify_text]" size 18 color "#cccccc"
 
 # =========================================
@@ -1632,11 +1763,14 @@ screen phone_system():
             elif phone_screen == "chat":
                 use phone_chat
 
-            elif phone_screen == "archive_password":
+            elif phone_screen == "archive_password" and private_chats_enabled:
                 use phone_archive_password
 
-            elif phone_screen == "archive_list":
+            elif phone_screen == "archive_list" and private_chats_enabled:
                 use phone_archive_list
+
+            elif phone_screen == "archive_password" or phone_screen == "archive_list":
+                use phone_home
 
 # =========================================
 # HOME DO CELULAR
@@ -1668,14 +1802,15 @@ screen phone_home():
 
             text "SMS" style "phone_header" size 18 color "#ffffff" xalign 0.5
 
-        fixed:
-            xpos 250
-            ypos 105
+        if private_chats_enabled:
+            fixed:
+                xpos 250
+                ypos 105
 
-            imagebutton:
-                idle Transform("images/ui/lock.png", xysize=(52, 52))
-                hover Transform("images/ui/lock.png", xysize=(52, 52))
-                action SetVariable("phone_screen", "archive_password")
+                imagebutton:
+                    idle Transform("images/ui/lock.png", xysize=(52, 52))
+                    hover Transform("images/ui/lock.png", xysize=(52, 52))
+                    action SetVariable("phone_screen", "archive_password")
 # =========================================
 # TELA PRINCIPAL SMS
 # =========================================
@@ -1692,7 +1827,7 @@ screen phone_sms_main():
             xysize (30, 30)
             action SetVariable("phone_screen", "home")
 
-        text "CONTATOS":
+        text _("CONTATOS"):
             style "phone_header"
             xalign 0.5
             ypos 50
@@ -1736,7 +1871,7 @@ screen phone_sms_main():
                                     color "#ffffff"
 
                                 if len(chats.get(contact, [])) > 0:
-                                    text get_chat_preview(chats[contact][-1]["text"], 40):
+                                    text get_chat_preview(phone_message_text(chats[contact][-1]), 40):
                                         style "phone_message_preview"
                                         size 14
                                         color "#aaaaaa"
@@ -1750,6 +1885,8 @@ screen phone_sms_main():
 screen phone_archive_password():
 
     fixed:
+        if not private_chats_enabled:
+            timer 0.01 action SetVariable("phone_screen", "home")
 
         imagebutton:
             idle "back_icon"
@@ -1812,6 +1949,8 @@ screen phone_archive_password():
 screen phone_archive_list():
 
     fixed:
+        if not private_chats_enabled:
+            timer 0.01 action SetVariable("phone_screen", "home")
 
         imagebutton:
             idle "back_icon"
@@ -1858,7 +1997,7 @@ screen phone_archive_list():
                                     color "#ffffff"
 
                                 if len(chats.get(contact, [])) > 0:
-                                    text get_chat_preview(chats[contact][-1]["text"], 40) size 14 color "#aaaaaa" xmaximum 220 text_align 0.0
+                                    text get_chat_preview(phone_message_text(chats[contact][-1]), 40) size 14 color "#aaaaaa" xmaximum 220 text_align 0.0
 
 # =========================================
 # TELA DE CONVERSA
@@ -1948,7 +2087,7 @@ screen phone_chat():
                                     spacing 4
                                     xmaximum 248
 
-                                    text msg["text"]:
+                                    text phone_message_text(msg):
                                         style "phone_message"
                                         xmaximum 248
                                         text_align 0.0
@@ -1979,7 +2118,7 @@ screen phone_chat():
                                     spacing 4
                                     xmaximum 248
 
-                                    text msg["text"]:
+                                    text phone_message_text(msg):
                                         style "phone_message"
                                         xmaximum 248
                                         text_align 0.0
@@ -2005,19 +2144,18 @@ screen phone_chat():
                         frame:
                             xalign 1.0
                             xoffset -8
-                            xmaximum 270
-                            xminimum 110
+                            xsize 270
                             yminimum 44
                             padding (16, 12, 16, 12)
                             background Solid("#2E88FF")
 
                             vbox:
                                 spacing 4
-                                xmaximum 248
+                                xsize 238
 
                                 text player_typing_shown:
                                     style "phone_message"
-                                    xmaximum 248
+                                    xsize 238
                                     text_align 0.0
                                     size 13
                                     color "#ffffff"
@@ -2055,17 +2193,30 @@ screen phone_chat():
 
         timer 0.5 repeat True action Function(save_current_chat_scroll)
 
-        add "send_disabled":
-            xpos 288
-            ypos 615
-            xysize (50, 50)
+        if current_chat not in pending_choices:
+            add "send_disabled":
+                xpos 288
+                ypos 615
+                xysize (50, 50)
 
         if current_chat in pending_choices:
 
+            frame:
+                xpos 22
+                ypos 575
+                xsize 335
+                ysize 100
+                background Solid("#101820dd")
+                padding (8, 8)
+
+                viewport:
+                    xfill True
+                    yfill True
+                    draggable True
+                    mousewheel True
+
                     vbox:
-                        xpos 52
-                        ypos 585
-                        spacing 8
+                        spacing 6
 
                         $ choice_id = pending_choices[current_chat]
 
@@ -2073,14 +2224,14 @@ screen phone_chat():
 
                             for option in phone_choices[choice_id]:
 
-                                textbutton option["text"]:
-                                    xmaximum 285
-                                    xfill True
-                                    text_align 0.0
-                                    text_size 16
-                                    padding (10, 10)
-                                    background Solid("#ffffff22")
-                                    hover_background Solid("#ffffff44")
+                                textbutton game_tr(option["text"]):
+                                    xsize 319
+                                    yminimum 34
+                                    text_xalign 0.5
+                                    text_size 13
+                                    padding (8, 6)
+                                    background Solid("#ffffff2a")
+                                    hover_background Solid("#ffffff4a")
                                     action Function(run_phone_choice, option["text"], option["label"], option.get("date", None), option.get("time", None))
 
         if editing_contact_name:
@@ -2127,33 +2278,34 @@ screen phone_chat():
 # =========================================
 
 label reply_jinsei_atraso1:
-    call npc_type_and_send("Jinsei", "Hmmm... Sei.... quero ver então 😠", time="08:15")
+    call npc_type_and_send("Jinsei", "Hmmm... Sei.... quero ver então 😠", time="08:15") from _call_npc_type_and_send
 
-    call jinsei_yuki_final
+    call jinsei_yuki_final from _call_jinsei_yuki_final
     
     return
 
 label jinsei_yuki_final:
 
-    call send_player_message("Jinsei", "O Professor Yuki me adora, não tem porque dele brigar comigo pô", time="08:16")
+    call send_player_message("Jinsei", "O Professor Yuki me adora, não tem porque dele brigar comigo pô", time="08:16") from _call_send_player_message_1
 
-    call npc_type_and_send("Jinsei", "Adora tanto, que você dorme em TODAS as aulas deles", time="08:16")
+    call npc_type_and_send("Jinsei", "Adora tanto, que você dorme em TODAS as aulas deles", time="08:16") from _call_npc_type_and_send_1
 
-    call send_player_message("Jinsei", "Não, mas você tem que entender que eu estudo por fora, sabe como é né!", time="08:16")
-    call send_player_message("Jinsei", "Sou um gênio imcompreendido", time="08:16")
+    call send_player_message("Jinsei", "Não, mas você tem que entender que eu estudo por fora, sabe como é né!", time="08:16") from _call_send_player_message_2
+    call send_player_message("Jinsei", "Sou um gênio imcompreendido", time="08:16") from _call_send_player_message_3
 
-    call npc_type_and_send("Jinsei", "Incompreendido*", time="08:17")
+    call npc_type_and_send("Jinsei", "Incompreendido*", time="08:17") from _call_npc_type_and_send_2
 
-    call send_player_message("Jinsei", "Ta, ta... Vou indo nessa tchau", time="08:17")
+    call send_player_message("Jinsei", "Ta, ta... Vou indo nessa tchau", time="08:17") from _call_send_player_message_4
 
-    call npc_type_and_send("Jinsei", "Tchau, até daqui a pouco 😊", time="08:17")
+    call npc_type_and_send("Jinsei", "Tchau, até daqui a pouco 😊", time="08:17") from _call_npc_type_and_send_3
 
     return
 
 label reply_jinsei_atraso2:
-    call npc_type_and_send("Jinsei", "Esse emoji de joinha é de tiozão hahahaha 🤣", time="08:15")
+    call npc_type_and_send("Jinsei", "Esse emoji de joinha é de tiozão hahahaha 🤣", time="08:15") from _call_npc_type_and_send_4
+    call npc_type_and_send("Jinsei", "Mas falando sério, o senhor Yuki vai ficar uma fera se te ver atrasado de novo", time="08:15") from _call_npc_type_and_send_5
 
-    call jinsei_yuki_final
+    call jinsei_yuki_final from _call_jinsei_yuki_final_1
 
     return
 
@@ -2163,40 +2315,142 @@ label reply_jinsei_atraso2:
 
 
 label reply_estella_novo1:
-    call npc_type_and_send("Estella", "Ai que bom! Achei que você tinha passado o número errado hahaha")
+    call npc_type_and_send("Estella", "Ai que bom! Achei que você tinha passado o número errado hahaha", time="19:22") from _call_npc_type_and_send_6
 
-    call estella_primeiraconversa
+    call estella_primeiraconversa from _call_estella_primeiraconversa
 
     return
 
 label reply_estella_novo2:
-    call npc_type_and_send("Estella", "Ah que bom! Sou eu a Estella, você me passou seu número se lembra?")
+    call npc_type_and_send("Estella", "Ah que bom!", time="19:22") from _call_npc_type_and_send_7
 
-    call estella_primeiraconversa
+    call estella_primeiraconversa from _call_estella_primeiraconversa_1
 
     return
 
 label estella_primeiraconversa:
-    call npc_type_and_send("Estella", "Você tinha me pedido para te mandar mensagem quando chegasse em casa.")
+    call npc_type_and_send("Estella", "Você tinha me pedido para te mandar mensagem quando chegasse em casa.", time="19:22") from _call_npc_type_and_send_8
 
     if consequência_ativada["ajudar_estella_chave"] == True:
         $ renpy.restart_interaction()
 
         pause 0.5
 
-        call npc_type_and_send("Estella", "Eu acabei de chegar em casa, e queria saber se você consegue me ajudar a procura-la agora?")
+        call npc_type_and_send("Estella", "Eu acabei de chegar em casa, e queria saber se você consegue me ajudar a procura-la agora?", time="19:23") from _call_npc_type_and_send_9
         $ set_pending_choice("Estella", "estella_escolha_02")
         $ renpy.restart_interaction()
 
         return
     else:
-        call npc_type_and_send("Estella", "Teste porraaaaaaaaaaaaaaaaaaaaa")
+        call npc_type_and_send("Estella", "Você ta muito ocupado?", time="19:23") from _call_npc_type_and_send_10
+
+        $ set_pending_choice("Estella", "estella_escolha_03")
+        $ renpy.restart_interaction()
 
         return
 
+label reply_estella_escolha_02_1:
+    if consequência_ativada["ajudar_estella_chave"] == True:
+
+        call send_player_message("Estella", "E tipo, to com sono pra caralho, podemos fazer amanhã que é sexta? Ai fazemos na parte da manhã.", time="19:25") from _call_send_player_message_5
+
+        call npc_type_and_send("Estella", "Ahh, sim! Claro, amanhã de manhã tá ótimo 😊", time="19:25") from _call_npc_type_and_send_11
+    else:
+        call npc_type_and_send("Estella", "Ahh, nada não, relaxa!", time="19:25") from _call_npc_type_and_send_12
+    call npc_type_and_send("Estella", "Mas ei...", time="19:26") from _call_npc_type_and_send_13
+    call npc_type_and_send("Estella", "O que aconteceu que você dormiu a tarde inteira?", time="19:26") from _call_npc_type_and_send_14
+
+    $ set_pending_choice("Estella", "estella_verdade")
+    $ renpy.restart_interaction()
+
+    return
+
+label reply_estella_escolha_02_2:
+    if consequência_ativada["ajudar_estella_chave"] == True:
+
+        call send_player_message("Estella", "E tipo, não é nem porque eu não quero tá ligado? É porque eu realmente to com sono pra caralho.", time="19:25") from _call_send_player_message_6
+        call send_player_message("Estella", "É que tipo, eu to com MUUUUUUITO sono, eu dormi a tarde inteira hoje kkkkk, dormi era 12:50 por ai, e quando acordei era passada 17:30") from _call_send_player_message_7
+
+        call npc_type_and_send("Estella", "Ahh, sim! Nossa que merda 😞", time="19:25") from _call_npc_type_and_send_15
+    else:
+        call npc_type_and_send("Estella", "Ahh, então não se preocupa com isso, relaxa!", time="19:25") from _call_npc_type_and_send_16
+    call npc_type_and_send("Estella", "Mas ta tudo bem com você?", time="19:26") from _call_npc_type_and_send_17
+    call send_player_message("Estella", "To to, eu só to com muito sono mesmo, dormi a tarde inteira.", time="19:26") from _call_send_player_message_8
+    call npc_type_and_send("Estella", "Ahh, entendi... ei, uma perguntinha...", time="19:26") from _call_npc_type_and_send_18
+    call npc_type_and_send("Estella", "O que aconteceu que você dormiu a tarde inteira?", time="19:26") from _call_npc_type_and_send_19
+    
+    $ set_pending_choice("Estella", "estella_verdade")
+    $ renpy.restart_interaction()
+
+    return
+
+label reply_estella_verdade1:
+    call npc_type_and_send("Estella", "Ahh, entendi...", time="19:28") from _call_npc_type_and_send_20
+    call npc_type_and_send("Estella", "Ei... Você almoça no Senhor Tanaka?", time="19:28") from _call_npc_type_and_send_21
+
+    call send_player_message("Estella", "SIIIIIM!!!!!! É LITERALMENTE O MELHOR RESTAURANTE DA CIDADE 😍😍😍", time="19:28") from _call_send_player_message_9
+
+    call npc_type_and_send("Estella", "Eu amoooo aquele lugar, eu vou lá desde pequena", time="19:29") from _call_npc_type_and_send_22
+    call send_player_message("Estella", "Nossa, que foda, a gente tem que ir juntos lá então um dia desses", time="19:29") from _call_send_player_message_10
+
+    call npc_type_and_send("Estella", "Simmm, seria muito legal! Eu adoraria 😊", time="19:29") from _call_npc_type_and_send_23
+
+    call send_player_message("Estella", "Então tá, semana que vem a gente vai ir lá!", time="19:29") from _call_send_player_message_11
+
+    call npc_type_and_send("Estella", "Oba, tô ansiosa! 😍", time="19:29") from _call_npc_type_and_send_24
+    call npc_type_and_send("Estella", "Mas enfim.... Eu acho que vou ir pra cama também!", time="19:29") from _call_npc_type_and_send_25
+
+    call send_player_message("Estella", "Tudo bem, eu daqui a pouco chego no meu AP pra dormir também.", time="19:30") from _call_send_player_message_12
+    call send_player_message("Estella", "Boa noite Estella, durma bem!", time="19:30") from _call_send_player_message_13
+
+    call npc_type_and_send("Estella", "Boa noite, durma bem também! 😊", time="19:30") from _call_npc_type_and_send_26
+
+    $ renpy.restart_interaction()
+
+    return
+
+label reply_estella_verdade2:
+    call npc_type_and_send("Estella", "Ahh, entendi kkkkkkk", time="19:28") from _call_npc_type_and_send_27
+    call send_player_message("Estella", "Poisé, teve que o Kenji me acordar pra me tirar de lá, se não eu iria acampar no Restaurante kkkkkk", time="19:28") from _call_send_player_message_14
+
+    call npc_type_and_send("Estella", "Calma ai.... Kenji? Kenji Kichimura?", time="19:28") from _call_npc_type_and_send_28
+    call send_player_message("Estella", "Sim, porquê? Você conhece ele?", time="19:29") from _call_send_player_message_15
+
+    call npc_type_and_send("Estella", "Sim, eu conheço o Kenji, ele é um conhecido de ANOS!", time="19:29") from _call_npc_type_and_send_29
+    call send_player_message("Estella", "Nossa que foda, ele também, eu conheço ele a um tempaço, que mundo pequeno né, e pensar que a gente nunca se conheceu por ele antes.", time="19:29") from _call_send_player_message_16
+    call npc_type_and_send("Estella", "É....", time="19:29") from _call_npc_type_and_send_30
+
+    call npc_type_and_send("Estella", "Mas ei, mudando de assunto...", time="19:29") from _call_npc_type_and_send_31
+
+    call npc_type_and_send("Estella", "Você almoça no Senhor Tanaka?", time="19:28") from _call_npc_type_and_send_32
+
+    call send_player_message("Estella", "SIIIIIM!!!!!! É LITERALMENTE O MELHOR RESTAURANTE DA CIDADE 😍😍😍", time="19:28") from _call_send_player_message_17
+
+    call npc_type_and_send("Estella", "Eu amoooo aquele lugar, eu vou lá desde pequena", time="19:29") from _call_npc_type_and_send_33
+    call send_player_message("Estella", "Nossa, que foda, a gente tem que ir juntos lá então um dia desses", time="19:29") from _call_send_player_message_18
+
+    call npc_type_and_send("Estella", "Simmm, seria muito legal! Eu adoraria 😊", time="19:29") from _call_npc_type_and_send_34
+
+    call send_player_message("Estella", "Então tá, semana que vem a gente vai ir lá!", time="19:29") from _call_send_player_message_19
+
+    call npc_type_and_send("Estella", "Oba, tô ansiosa! 😍", time="19:29") from _call_npc_type_and_send_35
+    call npc_type_and_send("Estella", "Mas enfim.... Eu acho que vou ir pra cama também!", time="19:29") from _call_npc_type_and_send_36
+
+    call send_player_message("Estella", "Tudo bem, eu daqui a pouco chego no meu AP pra dormir também.", time="19:30") from _call_send_player_message_20
+    call send_player_message("Estella", "Boa noite Estella, durma bem!", time="19:30") from _call_send_player_message_21
+
+    call npc_type_and_send("Estella", "Boa noite, durma bem também! 😊", time="19:30") from _call_npc_type_and_send_37
+
+    $ renpy.restart_interaction()
+
+    return
+
+
+
+
 label jinsei_preocupada:
     $ consequência_ativada["respondeu_jinseipreocupada"] = True
-    call send_player_message("Jinsei", "Mas agora to aqui esperando o busão, relaxa, jaja to em casa", time="19:01")
+    call send_player_message("Jinsei", "Mas agora to aqui esperando o busão, relaxa, jaja to em casa", time="19:01") from _call_send_player_message_22
     
     $ consequência_ativada["jinsei_preocupada"] = True
     $ amizade_add("Jinsei", 5)
@@ -2206,12 +2460,32 @@ label jinsei_preocupada:
 
 label jinsei_preocupada2:
     $ consequência_ativada["respondeu_jinseipreocupada"] = True
-    call send_player_message("Jinsei", "Meu celular só descarregou, acabei de pegar ele", time="19:01")
+    call send_player_message("Jinsei", "Meu celular só descarregou, acabei de pegar ele", time="19:01") from _call_send_player_message_23
     
     $ consequência_ativada["jinsei_preocupada"] = True
+    $ amizade_add("Jinsei", 5)
     $ renpy.restart_interaction()
 
     return
+
+label jinsei_mensagemManhã_dia2_1:
+    $ consequência_ativada["respondeu_a_jinseideManhã"] = True
+    call send_player_message("Jinsei", "Sim, dormi bem sim, obrigada por perguntar 😁", time="11:16") from _call_send_player_message_24
+    call send_player_message("Jinsei", "E você, dormiu bem?", time="11:16") from _call_send_player_message_25
+    $ amizade_add("Jinsei", 3)
+    $ renpy.restart_interaction()
+
+    return
+
+label jinsei_mensagemManhã_dia2_2:
+    $ consequência_ativada["respondeu_a_jinseideManhã"] = True
+    call send_player_message("Jinsei", "Oii, acordei agora, mas dormi bem sim!!!!", time="11:16") from _call_send_player_message_26
+    call send_player_message("Jinsei", "E você, dormiu bem?", time="11:16") from _call_send_player_message_27
+    $ amizade_add("Jinsei", 3)
+    $ renpy.restart_interaction()
+
+    return
+
 
 
 

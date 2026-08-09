@@ -1,4 +1,5 @@
-label Capítulo_1:
+﻿label Capítulo_1:
+    jump dia2
     stop music fadeout 1.0
     play music "audio/Musicas/frozen_winter.mp3" fadein 1.0
     
@@ -10,8 +11,8 @@ label Capítulo_1:
 
 
     "Voz Feminina" "{cps=40}\"Eai Kioku, você quer?{/cps}\""
-    "Voz Masculina" "{cps=40}\"Ah... Não sei, não sei se quero...{/cps}\""
-    "Voz Feminina" "{cps=40}\"Vamos, você precisa expairar a cabeça depois de tudo, vai tar todo mundo, vai ser divertido...{/cps}\""
+    "Kioku Aida" "{cps=40}\"Ah... Não sei, não sei se quero...{/cps}\""
+    "Voz Feminina" "{cps=40}\"Vamos, você precisa espairecer a cabeça depois de tudo, vai estar todo mundo, vai ser divertido...{/cps}\""
     "Kioku Aida" "{cps=40}\"Hmm...... Tá bom, acho que vou...{/cps}\""
     "Voz Feminina" "{cps=40}\"Ah que bom, vai ser divertido, eu prometo...{/cps}\""
     $ unlock_achievement('first_ach')
@@ -50,6 +51,7 @@ label Capítulo_1:
     pause 0.5
     j sorisso "{cps=40}\"Boooooooom diaaaaaaaa Kioku...\"{/cps}"
     j encantadaf "{cps=40}\"Como você tá Kiokuzinho? Dormiu bem?\"{/cps}"
+    $ desbloquear_Personagem("jinsei")
 
     menu:
         "O mesmo de sempre sabe como é":
@@ -68,7 +70,7 @@ label omesmodesempre:
 label acordadodespertador:
 
     k normal "{cps=40}\"Ah... To bem, única coisa é que fui acordado pelo despertador.... de novo.\"{/cps}"
-    j encantadaf "{cps=40}\"Bom pelo menos alguem consegue te acordar hahahahaha.{/cps}\""
+    j encantadaf "{cps=40}\"Bom pelo menos alguém consegue te acordar hahahahaha.{/cps}\""
     k divertindo "{cps=40}\"Hahahaha, tem razão, mas sei la, hoje queria dormir mais.{/cps}\""
     j normal "{cps=40}\"Mas, pela sua voz, você parece meio mal.{/cps}\""
     k normal "{cps=40}\"Ah não é nada de mais, não precisa se preocupar com isso.{/cps}\""
@@ -82,7 +84,7 @@ label silencio:
     k normal "{cps=40}\"....{/cps}\""
     j choro "{cps=40}\"Sonhou com aquilo de novo né?{/cps}\""
     k triste "{cps=40}\"....{/cps}\""
-    k "{cps=40}{i}Aquele silêncio parece ter sido durado um século, porque sempre que toca nesse assunto é assim.{/i}{/cps}"
+    k "{cps=40}{i}Aquele silêncio parece ter durado um século, porque sempre que toca nesse assunto é assim.{/i}{/cps}"
     jump contar_verdade
 
 label contar_verdade:
@@ -96,23 +98,19 @@ label contar_verdade:
             k "{cps=40}{i}Eu sinto que a Jinsei é a única pessoa que eu posso confiar hoje em dia, não devo esconder isso a ela, vou contar o que sonhei.{/i}{/cps}"
             k normal "{cps=40}\"Na verdade eu sonhei com aquele garoto de novo... eu de 10 anos atrás...{/cps}\""
             j surpresa "{cps=40}\"Sério? E o que aconteceu?{/cps}\""
-            scene sonhokioku
-            with dissolve
             k normal "{cps=40}\"Nada de mais, eu conversando com uma outra pessoa, ela estava me convidando para alguma coisa{/cps}\""
             j surpresa "{cps=40}\"Ah... e você lembra quem era essa pessoa?{/cps}\""
             k normal "{cps=40}\"Não sei, não lembro o rosto dela direito... mas eu lembro que ela tinha uma voz muito suave e animada...{/cps}\""
-            scene Quarto1
-            with dissolve
             k normal "{cps=40}\"E... foi isso, depois eu acordei{/cps}\""
-            j feliz "{cps=40}\"Entendi, bom, pelo menos não foi pesadelo, né?{/cps}\""
-            $ show_consequence("Jinsei se lembrará disso", 3)
+            j sorisso "{cps=40}\"Entendi, bom, pelo menos não foi pesadelo, né?{/cps}\""
+            $ show_consequence("Jinsei se lembrará disso", 1.5)
             $ consequência_ativada["jinsei_verdade_sonho"] = True
             j sorisso "{cps=40}\"Ei, mudando de assunto...{/cps}\""
 
             jump prova
 
         "Arrumar uma desculpa":
-            call rolar_d20(dc=12, atributo='labia', titulo="Teste de Lábia: Arrume uma Desculpa")
+            call rolar_d20_base(dc=12, atributo='labia', titulo="Teste de Lábia: Arrume uma Desculpa")
             $ resultado = _return
             if resultado:
                 $ amizade_add("jinsei", -1)
@@ -122,7 +120,7 @@ label contar_verdade:
                 j choro "{cps=40}\"Ah... se quiser conversar sobre isso, eu to aqui.{/cps}\""
                 k normal "{cps=40}\"Obrigado Jinsei... mas é melhor eu não falar sobre isso...{/cps}\""
                 j sorisso "{cps=40}\"Tudo bem Kioku, se quiser conversar sobre...{/cps}\""
-                $ show_consequence("Jinsei se lembrará disso", 3)
+                $ show_consequence("Jinsei se lembrará disso", 1.5)
                 $ consequência_ativada["jinsei_mentira_sonho"] = True
                 k "{cps=40}{i}Eu não quero envolver a Jinsei nisso, é melhor eu não contar nada pra ela.{/i}{/cps}"
                 j sorisso "{cps=40}\"Ei, mudando de assunto...{/cps}\""
@@ -135,7 +133,7 @@ label contar_verdade:
                 j choro "{cps=40}\"Não sei... mas tudo bem se você diz que não é nada de mais...{/cps}\""
                 k normal "{cps=40}\"Obrigado Jinsei... mas é melhor eu não falar sobre isso...{/cps}\""
                 j sorisso "{cps=40}\"Tudo bem Kioku, se quiser conversar sobre...{/cps}\""
-                $ show_consequence("Jinsei se lembrará disso", 3)
+                $ show_consequence("Jinsei se lembrará disso", 1.5)
                 $ consequência_ativada["jinsei_mentira_sonho"] = True
                 j sorisso "{cps=40}\"Ei, mudando de assunto...{/cps}\""
                 jump prova
@@ -161,7 +159,7 @@ label prova:
     j encantadaf "{cps=40}\"Não vai se atrasar ein Kioku.{/cps}\""
 
     k "{cps=40}{i}Graças a Deus eu estudei pra essa prova, última prova desse semestre, depois posso ficar livre da faculdade.{/i}{/cps}"
-    k "{cps=40}{i}Ta não vamo enrolar, ja é 8:15, o trêm chega as 8:40, tenho 15 minutos pra sair de casa.{/i}{/cps}"
+    k "{cps=40}{i}Ta não vamo enrolar, já é 8:15, o trem chega as 8:40, tenho 15 minutos pra sair de casa.{/i}{/cps}"
     k "{cps=40}{i}Eu posso fazer duas coisas só, e agora o que eu faço velho, me perdi no tempo conversando com a Jinsei.{/i}{/cps}"
 
     show screen phone_button
@@ -242,7 +240,7 @@ label tomarbanho:
     k normal "{cps=40}{i}Ok, vou tomar um banho rápido, pra não me atrasar.{/i}{/cps}"
     scene narrador
     with dissolve
-    play audio "tomarbanho.mp3"
+    play audio "audio/SoundsEffects/tomarbanho.mp3"
     k feliz "{cps=40}{i}Ahhh... que delícia, água morna... isso é vida.{/i}{/cps}"
     scene banheiroapbanho
     stop audio fadeout 0.5
@@ -269,7 +267,7 @@ label cafemanha:
     with pixellate
     k feliz "{cps=40}{i}Ok, vou tomar um café rápido, pra não me atrasar, cafézin preto com aquele sanduba de pão de forma....{/i}{/cps}"
     k normal "{cps=40}\"Mano.... Cade o pão?{/cps}\""
-    call rolar_d20 (dc=10, atributo='sorte', titulo="Tente a Sorte: Eu comprei Pão?")
+    call rolar_d20_base(dc=10, atributo='sorte', titulo="Tente a Sorte: Eu comprei Pão?")
     $ resultado = _return
     if resultado:
         k feliz "{cps=40}{i}Ahhh, graças a deus, eu comprei, não vou passar fome.{/i}{/cps}"
@@ -315,7 +313,7 @@ label cafemanha:
 label alimentarmingau:
     scene sala
     with pixellate
-    play audio "audio/Mingau/minguauronronando.mp3"
+    play audio "audio/Mingau/minguauronronando.mp3" 
     show mingaudormindo at center:
         zoom 0.5
     k feliz "{cps=40}{i}O Mingau é tão bonito dormindo, você é a unica coisa que ainda me faz sorrir nesse mundo amigão.{/i}{/cps}"
@@ -352,6 +350,7 @@ label alimentarmingau:
         jump sairdecasa      
 
 label sairdecasa:
+    $ cancel_pending_choice("Jinsei", "jinsei_yuki_atraso")
     scene narrador
     with dissolve
     play sound "audio/SoundsEffects/abrindoporta.mp3"
@@ -359,21 +358,23 @@ label sairdecasa:
     play sound "audio/SoundsEffects/fechandoporta.mp3"
     scene apartamentoexterno
     with pixellate
-    k "{cps=40}{i}Finalmente estou fora de casa, agora é só pegar o trêm e ir pra faculdade.{/i}{/cps}"
-    play audio "audio/batendonaporta.mp3"
+    k "{cps=40}{i}Finalmente estou fora de casa, agora é só pegar o trem e ir pra faculdade.{/i}{/cps}"
+    play audio "audio/SoundsEffects/batendonaporta.mp3"
     pause 1.0
     k "{cps=40}{i}Que barulho é esse?{/cps}{/i}"
     k "{cps=40}{i}Parece que vem lá da lavanderia do prédio...{/i}{/cps}"
     menu:
         "Investigar o barulho":
             jump investigarbarulho
-        "Ignorar o barulho e seguir para a estação de trêm":
+        "Ignorar o barulho e seguir para a estação de trem":
             jump tremestacao
 
 
 label investigarbarulho:
     $ unlock_achievement('estella')
     $ trematraso = True
+    $ consequência_ativada["conhecer_estella"] = True
+    $ consequência_ativada["conheceu_estella_apartamento"] = True
     k "{cps=40}{i}Vou ver o que está acontecendo lá na lavanderia.{/i}{/cps}"
     scene escadalavanderia
     with pixellate
@@ -430,7 +431,6 @@ label investigarbarulho:
     s feliz2 "{cps=40}\"Obrigada Kioku, eu espero me dar bem com todos aqui{/cps}\""
     menu:
         "Perguntar sobre o nome":
-            $ amizade_add("estella", 2)
             k normal "{cps=40}\"Estella, que nome bonito... de onde é esse nome?{/cps}\""
             hide Stella feliz2
             show Stella happy1
@@ -453,7 +453,6 @@ label investigarbarulho:
             show Stella feliz
             menu:
                 "Ajudar a procurar a chave":
-                    $ amizade_add("estella", 3)
                     $ consequência_ativada["ajudar_estella_chave"] = True
                     k normal "{cps=40}\"Você falou que tinha perdido a sua chave né?{/cps}\""
                     hide Stella feliz
@@ -505,7 +504,7 @@ label investigarbarulho:
                     s feliz2 "{cps=40}\"Claro, foi um prazer te conhecer Kioku{/cps}\""
                     hide Stella feliz2
                     show Stella feliz3
-                    k feliz3 "{cps=40}\"Igualmente Estella, até mais.{/cps}\""
+                    k feliz "{cps=40}\"Igualmente Estella, até mais.{/cps}\""
                     hide Stella feliz3
                     jump tremestacao
                 "Se despedir":
@@ -521,7 +520,6 @@ label investigarbarulho:
                     with dissolve
                     jump tremestacao          
         "Ajudar a procurar a chave":
-            $ amizade_add("estella", 3)
             hide Stella feliz2
             show Stella feliz
             $ consequência_ativada["ajudar_estella_chave"] = True
@@ -563,6 +561,7 @@ label investigarbarulho:
             hide Stella feliz2
             show Stella feliz
             k normal "{cps=40}\"Então tá, meu número é 1724-1021, me manda uma mensagem mais tarde...{/cps}\""
+            $ consequência_ativada["celular_estella"] = True
             hide Stella feliz
             show Stella feliz2
             s feliz2 "{cps=40}\"Okay, pode deixar, no final da tarde eu te mando mensagem...{/cps}\""
@@ -570,7 +569,6 @@ label investigarbarulho:
             show Stella feliz
             menu:
                 "Perguntar sobre o nome":
-                    $ amizade_add("estella", 2)
                     k normal "{cps=40}\"Estella, que nome bonito... de onde é esse nome?{/cps}\""
                     hide Stella feliz2
                     show Stella happy1
@@ -637,13 +635,13 @@ label fimdemosecreto:
 
     "{cps=40}{i}Você fez isso para se proteger.\nPara se proteger do que você fez.\nDo que você é capaz de fazer.{/i}{/cps}"
 
-    "{cps=40}{i}Há dez anos, você viu algo que não deveria continuar existindo dentro da sua cabeça.\nE quando percebeu o que aquilo significava… você escolheu esquecer."
+    "{cps=40}{i}Há dez anos, você viu algo que não deveria continuar existindo dentro da sua cabeça.\nE quando percebeu o que aquilo significava… você escolheu esquecer.{/i}{/cps}"
 
     "{cps=40}{i}Não pense que foi covardia\nFoi sobrevivência.{/i}{/cps}"
 
     "{cps=40}{i}Todos nós concordamos naquela noite que seria melhor assim\nQue você não precisava carregar isso\nQue o silêncio era melhor do que a verdade.{/i}{/cps}"
 
-    "{cps=40}{i}Alguns de nós mativeram essa promessa\nOutros... não conseguiram.{/i}{/cps}"
+    "{cps=40}{i}Alguns de nós mantiveram essa promessa\nOutros... não conseguiram.{/i}{/cps}"
 
     "{cps=40}{i}Se as memórias estão voltando, significa que o pacto falhou.\nOu que você decidiu, mesmo sem perceber, quebrá-lo.{/i}{/cps}"
 
@@ -666,15 +664,15 @@ label fimdemosecreto:
     "{cps=40}{i}{b}Qualquer feedback, negativo ou positivo, que você queira dizer ou falar, por favor entre no {a=https://discord.gg/wp3UTT7q8t}Discord{/a} do jogo{/i}{/b}{/cps}"
     "{cps=40}{i}{b}Lá, além de poder dar feedbacks, vocês poderão acompanhar atualizações, dar sugestões, e até apoiar o meu trabalho{/i}{/b}{/cps}"
     "{cps=40}{i}{b}No momento em que estou terminando esta demo, não possuo ainda um catarse.me ou um patron, ou qualquer coisa, então caso, você realmente gostou da minha demo, e realmente quer apoiar meu projeto{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Basta entrar no servidor do Discord, divulgar o jogo, para que ele cresca, mesmo não sendo financeiramente, ainda assim, você estaria ajudando de mais a produção{/i}{/b}{/cps}"
+    "{cps=40}{i}{b}Basta entrar no servidor do Discord, divulgar o jogo, para que ele cresça, mesmo não sendo financeiramente, ainda assim, você estaria ajudando demais a produção{/i}{/b}{/cps}"
     "{cps=40}{i}{b}Por conta de apenas eu estar com toda a produção(Programação, musicas, personagens e afins) é necessário mais tempo para produzir algo bom o suficiente para toda e qualquer pessoa{/i}{/b}{/cps}"
     "{cps=40}{i}{b}Com isso dito, espero que entendam caso atualizações futuras, demorem mais para sair, visto que apenas eu estou encarregado de toda a produção{/i}{/b}{/cps}"
     "{cps=40}{i}{b}Bem, acho que era isso que eu tinha, novamente, muito obrigado por jogar até o final, e se você chegou até aqui, quer dizer que pegou 1 dos 3 finais dessa demo{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Se você quiser voltar ao inicio, tem um final secreto(que ja dando uma dica, é bem fácil de conseguir, e provavelmente no jogo final vai sumir..... Ou não){/i}{/b}{/cps}"
+    "{cps=40}{i}{b}Se você quiser voltar ao início, tem um final secreto(que já dando uma dica, é bem fácil de conseguir, e provavelmente no jogo final vai sumir..... Ou não){/i}{/b}{/cps}"
     "{cps=40}{i}{b}E bem, se você esta lendo isso, quer dizer que você chegou no final secreto, viu e descobriu um pouco mais sobre talvez o passado de Kioku{/i}{/b}{/cps}"
     "{cps=40}{i}{b}Quem será a pessoa por trás da carta? O que aconteceu em 25 de Julho de 2015? Talvez... essas sejam as perguntas erradas a se fazer{/i}{/b}{/cps}"
     "{cps=40}{i}{b}As vezes, desenterrar o passado, não é o caminho certo, pois memórias são feitas para lembrar, e o que foi perdida, deve-se continuar assim....{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Enfim, muito obrigado de coração, e nos vemos nas futuras atualizações de \'Antes que eu Lembre\', até mais <3"
+    "{cps=40}{i}{b}Enfim, muito obrigado de coração, e nos vemos nas futuras atualizações de \'Antes que eu Lembre\', até mais <3{/i}{/b}{/cps}"
     "{cps=40}{i}{b}Quase ia esquecendo(olha o processinho ai), agradeçimentos a Noraneko Games que disponibilizou gratuitamente os assets de personagens e alguns planos de fundos utilizados{/i}{/b}{/cps}"
     "{cps=40}{i}{b}Muito obrigado, sem o trabalho de vocês esse jogo seria três vezes mais difícil de ser produzido{/i}{/b}{/cps}"
     "{cps=40}{i}{b}Nos vemos em breve.....{/i}{/b}{/cps}"
@@ -682,22 +680,4 @@ label fimdemosecreto:
 
 
 
-# label finaldemo:
-    scene narrador
-    "{cps=40}{i}{b}E bem assim termina nossa história... Pelo menos por enquanto{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Talvez tenha ficado curta, talvez longa, tudo depende de você, jogador{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Mas o importante é que você chegou até aqui, e viu um pouco do que o \'Ainda que eu Lembre\' tem a oferecer{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Espero que tenha gostado, e que aguarde ansiosamente pelo lançamento completo do jogo{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Qualquer feedback, negativo ou positivo, que você queira dizer ou falar, por favor entre no {a=https://discord.gg/wp3UTT7q8t}Discord{/a} do jogo{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Lá, além de poder dar feedbacks, vocês poderão acompanhar atualizações, dar sugestões, e até apoiar o meu trabalho{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}No momento em que estou terminando esta demo, não possuo ainda um catarse.me ou um patron, ou qualquer coisa, então caso, você realmente gostou da minha demo, e realmente quer apoiar meu projeto{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Basta entrar no servidor do Discord, divulgar o jogo, para que ele cresca, mesmo não sendo financeiramente, ainda assim, você estaria ajudando de mais a produção{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Por conta de apenas eu estar com toda a produção(Programação, musicas, personagens e afins) é necessário mais tempo para produzir algo bom o suficiente para toda e qualquer pessoa{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Com isso dito, espero que entendam caso atualizações futuras, demorem mais para sair, visto que apenas eu estou encarregado de toda a produção{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Bem, acho que era isso que eu tinha, novamente, muito obrigado por jogar até o final, e se você chegou até aqui, quer dizer que pegou 1 dos 4 finais dessa demo{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Se você quiser voltar ao inicio, tem um final secreto(que ja dando uma dica, é bem fácil de conseguir, e provavelmente no jogo final vai sumir){/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Enfim, muito obrigado de coração, e nos vemos nas futuras atualizações de \'Antes que eu Lembre\', até mais <3"
-    "{cps=40}{i}{b}Quase ia esquecendo(olha o processinho ai), agradeçimentos a Noraneko Games que disponibilizou gratuitamente os assets de personagens e alguns planos de fundos utilizados{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Muito obrigado, sem o trabalho de vocês esse jogo seria três vezes mais difícil de ser produzido{/i}{/b}{/cps}"
-    "{cps=40}{i}{b}Nos vemos em breve.....{/i}{/b}{/cps}"
-    return
+

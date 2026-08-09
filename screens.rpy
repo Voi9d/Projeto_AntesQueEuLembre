@@ -335,7 +335,9 @@ screen navigation():
 
         textbutton _("Capítulos") action ShowMenu("chapter_select")
 
-        textbutton _("Preferências") action ShowMenu("preferences")
+        textbutton _("Diário") action ShowMenu("personagens_codex")
+
+        textbutton _("Opções") action ShowMenu("preferences")
 
         textbutton "Discord" action OpenURL(discord_link)
 
@@ -346,24 +348,18 @@ screen navigation():
         elif not main_menu:
 
             # Return to main menu.
-            textbutton _("Menu principal") action MainMenu()
+            textbutton _("Menu principal") action ShowMenu("confirm", message=_("Você tem certeza de que deseja voltar ao menu principal?\nIsso fará você perder o progresso não salvo."), yes_action=MainMenu(confirm=False), no_action=Hide("confirm"))
 
-        textbutton _("Diário") action ShowMenu("personagens_codex")
+        
 
         textbutton _("Conquistas") action ShowMenu("achievements")
 
         textbutton _("Sobre") action ShowMenu("about")
 
-        if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
-
-            ## A ajuda não é necessária ou relevante para dispositivos móveis.
-            textbutton _("Ajuda") action ShowMenu("help")
-
-        if renpy.variant("pc"):
-
-            ## O botão Sair é proibido no iOS e desnecessário no Android e na
-            ## Web.
-            textbutton _("Sair") action Quit(confirm=not main_menu)
+        if main_menu:
+            textbutton _("Sair") action ShowMenu("confirm", message=_("Você realmente deseja sair?"), yes_action=Quit(confirm=False), no_action=Hide("confirm"))
+        else:
+            textbutton _("Sair") action ShowMenu("confirm", message=_("Você realmente deseja sair?\nQualquer progresso feito não salvo será perdido!"), yes_action=Quit(confirm=False), no_action=Hide("confirm"))
 
 
 style navigation_button is gui_button
@@ -402,7 +398,7 @@ screen main_menu():
         except Exception:
             pass
 
-    add gui.main_menu_background
+    add menu_background_image("main")
     # Pressionar ESC (game_menu) abre diretamente Preferências no menu principal
     key "game_menu" action ShowMenu("preferences")
 
@@ -471,9 +467,9 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
     style_prefix "game_menu"
 
     if main_menu:
-        add gui.main_menu_background
+        add menu_background_image("main")
     else:
-        add gui.game_menu_background
+        add menu_background_image("game")
 
     frame:
         style "game_menu_outer_frame"
@@ -610,14 +606,68 @@ screen about():
 
         vbox:
 
+            spacing 18
+
             label "[config.name!t]"
-            text _("Versão [config.version!t]\n")
+            text "Uma visual novel dramática e psicológica sobre memórias, culpa e as verdades que escolhemos esquecer.":
+                size 20
+                color "#06fb33"
 
-            ## gui.about é normalmente definido em options.rpy.
-            if gui.about:
-                text "[gui.about!t]\n"
+            text "A história acompanha Kioku Aida, um jovem universitário que começa a perceber que algumas lembranças do passado talvez nunca tenham realmente desaparecido.":
+                size 18
+                color "#06fb33"
 
-            text _("Feito com {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only] .\n\n[renpy.license!t]")
+            text "Desenvolvimento":
+                size 28
+                color "#ffffff"
+
+            text "Antes que eu Lembre é um projeto independente desenvolvido por Mim. Muito Prazer, podem me chamar de Echo, tenho 21 anos, e não, não sou formado em programação, mas AMO programar.":
+                size 18
+                color "#03f992"
+
+            text "Roteiro, programação, sistemas, direção narrativa, implementação e organização geral do projeto tudo isso foram e serão(pelo menos por enquanto) por mim.":
+                size 18
+                color "#03f992"
+
+            text "Um pouco sobre Mim":
+                size 28
+                color "#cccccc"
+
+            text "Bom, como falei tenho apenas 21 anos, sou gaúcho, e sempre gostei de escrever histórias, seja de romance, terror. O que importava pra mim era a escrita.":
+                size 18
+                color "#f59404"
+
+            text "E durante a minha vida toda, eu sempre amei jogos, principalmente os de histórias, mas quando eu descobri os famosos \"Jogos de Escolha\" ou então \"Vários Finais\", foi ai que me encantei com programação de jogos.":
+                size 18
+                color "#f59404"
+
+            text "Desde então, eu tenho pensado na melhor história que eu poderia escrever.... Foi ai que ano passado surgiu o \"Antes que eu Lembre\", que originalmente eu coloquei ele como apenas \"ProjetoJogoEscolha\".":
+                size 18
+                color "#f59404"
+
+            text "E bem... Basicamente é isso, espero que goste do meu jogo <3":
+                size 18
+                color "#f59404"
+
+            text "Créditos e Recursos":
+                size 28
+                color "#ffffff"
+
+            text "Claro, não poderia de mencionar os lindos e maravilhosos artistas que publicaram gratuitamente alguns sprites/músicas/backgrounds que me fizeram uma AJUDA gigante.":
+                size 18
+                color "#08fabd"
+
+            text "Aqui vai a lista de nomes dos artistas e suas áreas que utilizei no jogo:\nBackgrounds: Tainara-P, Noraneko Games, Spiral Atlas e House Of Imagi Studio.\nSprites: Sutemo e Sraye.\nMúsicas: Bell Kalengar e Potat0Master":
+                size 18
+                color "#08fabd"
+
+            text "Versão":
+                size 28
+                color "#ffffff"
+
+            text "Demo":
+                size 18
+                color "#cccccc"
 
 
 style about_label is gui_label
@@ -696,7 +746,7 @@ screen file_slots(title):
 
                         add FileScreenshot(slot) xalign 0.5
 
-                        text FileTime(slot, format=_("{#file_time}%A, %B %d %Y, %H:%M"), empty=_("slot vazio")):
+                        text FileTime(slot, format=_("{#file_time}%d/%m/%Y, %H:%M"), empty=_("slot vazio")):
                             style "slot_time_text"
 
                         text FileSaveName(slot):
@@ -783,11 +833,18 @@ style slot_button_text:
 ##
 ## https://www.renpy.org/doc/html/screen_special.html#preferences
 
+init python:
+    def volume_percent(mixer):
+        try:
+            return int(round(_preferences.get_volume(mixer) * 100))
+        except Exception:
+            return 100
+
 screen preferences():
 
     tag menu
 
-    use game_menu(_("Preferências"), scroll="viewport"):
+    use game_menu(_("Opções"), scroll="viewport"):
 
         vbox:
 
@@ -800,20 +857,13 @@ screen preferences():
                         style_prefix "radio"
                         label _("Tela")
                         textbutton _("Janela") action Preference("display", "window")
-                        textbutton _("Tela cheia") action Preference("display", "fullscreen")
-
-                vbox:
-                    style_prefix "check"
-                    label _("Pular")
-                    textbutton _("Texto invisível") action Preference("skip", "toggle")
-                    textbutton _("Após as escolhas") action Preference("after choices", "toggle")
-                    textbutton _("Transições") action InvertSelected(Preference("transitions", "toggle"))
+                        textbutton _("Tela cheia(Padrão)") action Preference("display", "fullscreen")
 
                 vbox:
                     style_prefix "radio"
                     label _("Idioma")
                     textbutton _("Português") action Language(None)
-                    textbutton _("English") action Language("english")
+                    textbutton _("Inglês") action Language("english")
 
                 ## Vboxes adicionais do tipo "radio_pref" ou "check_pref" podem
                 ## ser adicionadas aqui para acrescentar outras preferências
@@ -827,41 +877,32 @@ screen preferences():
 
                 vbox:
 
-                    label _("Velocidade do texto")
-
-                    bar value Preference("text speed")
-
-                    label _("Tempo de encaminhamento automático")
-
-                    bar value Preference("auto-forward time")
-
-                vbox:
-
                     if config.has_music:
                         label _("Volume da música")
 
                         hbox:
+                            spacing 16
                             bar value Preference("music volume")
+                            text "[volume_percent('music')]%":
+                                size 32
+                                min_width 82
+                                xalign 0.5
 
                     if config.has_sound:
 
                         label _("Volume do som")
 
                         hbox:
+                            spacing 16
                             bar value Preference("sound volume")
+                            text "[volume_percent('sfx')]%":
+                                size 32
+                                min_width 82
+                                xalign 0.5
 
                             if config.sample_sound:
                                 textbutton _("Teste") action Play("sound", config.sample_sound)
 
-
-                    if config.has_voice:
-                        label _("Volume da voz")
-
-                        hbox:
-                            bar value Preference("voice volume")
-
-                            if config.sample_voice:
-                                textbutton _("Teste") action Play("voice", config.sample_voice)
 
                     if config.has_music or config.has_sound or config.has_voice:
                         null height gui.pref_spacing
@@ -1216,6 +1257,15 @@ screen confirm(message, yes_action, no_action):
 
     style_prefix "confirm"
 
+    python:
+        confirm_message = message
+        if message == "Are you sure you want to quit?":
+            confirm_message = _("Você tem certeza de que deseja sair?")
+        elif message == "Loading will lose unsaved progress.\nAre you sure you want to do this?":
+            confirm_message = _("Carregar um save fará você perder o progresso não salvo.\nVocê tem certeza de que deseja fazer isso?")
+        elif message == "Are you sure you want to return to the main menu?\nThis will lose unsaved progress.":
+            confirm_message = _("Você tem certeza de que deseja voltar ao menu principal?\nIsso fará você perder o progresso não salvo.")
+
     add "gui/overlay/confirm.png"
 
     frame:
@@ -1225,7 +1275,7 @@ screen confirm(message, yes_action, no_action):
             yalign .5
             spacing 45
 
-            label _(message):
+            label _(confirm_message):
                 style "confirm_prompt"
                 xalign 0.5
 

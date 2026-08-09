@@ -96,8 +96,34 @@ define gui.version_color = '#0a0a0a'
 ## Menus principal e de jogos ##################################################
 
 ## As imagens usadas nos menus principal e de jogo.
-define gui.main_menu_background = "gui/Temple_Summer_Day.png"
+define gui.main_menu_background_day = "gui/Temple_Summer_Day.png"
+define gui.main_menu_background_night = "gui/Temple_Summer_Night.png"
+define gui.game_menu_background_day = "gui/Temple_Summer_Day.png"
+define gui.game_menu_background_night = "gui/Temple_Summer_Night.png"
+
+## Fallback para telas que ainda usem as variáveis padrão.
+define gui.main_menu_background = "gui/Temple_Summer_Night.png"
 define gui.game_menu_background = "gui/Temple_Summer_Night.png"
+
+init python:
+    def menu_background_image(kind="main"):
+        try:
+            periodo = periodo_real_do_dia()
+        except Exception:
+            import datetime
+            hora = datetime.datetime.now().hour
+            periodo = "dia" if 6 <= hora < 18 else "noite"
+
+        if kind == "game":
+            if periodo == "dia":
+                return gui.game_menu_background_day
+            return gui.game_menu_background_night
+
+        if periodo == "dia":
+            return gui.main_menu_background_day
+        return gui.main_menu_background_night
+
+
 
 
 ## Diálogo #####################################################################

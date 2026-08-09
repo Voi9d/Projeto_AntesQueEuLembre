@@ -25,14 +25,15 @@ default persistent.atributos = {}
 default persistent.atributos_confirmed = False
 init python:
     # Música que toca no menu principal
-    import os
+    _codex_os = __import__("os")
 
     nome_pc = (
-        os.environ.get("USERNAME") or
-        os.environ.get("USER") or
+        _codex_os.environ.get("USERNAME") or
+        _codex_os.environ.get("USER") or
         "Jogador"
     )
-    del os
+    del _codex_os
+    globals().pop("os", None)
     
     config.main_menu_music = "audio/Musicas/hope.mp3"
     #jinseiamizade = 40
@@ -62,7 +63,7 @@ init python:
     def atributo_display_name(attr):
         for aid, name in ATRIBUTOS_DEF:
             if aid == attr:
-                return name
+                return game_tr(name)
         return str(attr)
 
     def atributo_default_value(attr):
@@ -152,14 +153,62 @@ init python:
         return atributo_modifier_value(attr)
     
     
+init python:
+    import datetime
 
+    def periodo_real_do_dia():
+        hora = datetime.datetime.now().hour
+
+        # 06:00 até 18:00
+        if 6 <= hora < 18:
+            return "dia"
+        else:
+            return "noite"
 
     # Define valor padrão para variável persistente usada no D20
     if not hasattr(persistent, 'd20_last_final'):
         setattr(persistent, 'd20_last_final', None)
+    if not hasattr(persistent, 'd20_natural_20_count'):
+        setattr(persistent, 'd20_natural_20_count', 0)
+    if not hasattr(persistent, 'd20_natural_1_count'):
+        setattr(persistent, 'd20_natural_1_count', 0)
 
     # Função auxiliar para finalizar a rolagem do D20 com segurança
-    def d20_finish_roll(modifier, dc):
+    def d20_apply_result(roll, modifier, dc):
+        roll = max(1, min(int(roll), 20))
+        setattr(persistent, 'd20_last_final', roll)
+
+        store.d20_final = roll
+        store.d20_total = roll + modifier
+        store.d20_success = (store.d20_total >= dc)
+        store.d20_rolling = False
+        store.d20_time_left = 0.0
+        store.d20_was_natural_20 = (roll == 20)
+        store.d20_was_natural_1 = (roll == 1)
+        if roll == 20:
+            try:
+                persistent.d20_natural_20_count = int(getattr(persistent, 'd20_natural_20_count', 0)) + 1
+                store.d20_natural_20_count = persistent.d20_natural_20_count
+                unlock_achievement('natural_20')
+                if persistent.d20_natural_20_count >= 2:
+                    unlock_achievement('natural_20_twice')
+                renpy.save_persistent()
+            except Exception:
+                pass
+        elif roll == 1:
+            try:
+                persistent.d20_natural_1_count = int(getattr(persistent, 'd20_natural_1_count', 0)) + 1
+                store.d20_natural_1_count = persistent.d20_natural_1_count
+                unlock_achievement('natural_1')
+                renpy.save_persistent()
+            except Exception:
+                pass
+
+    def d20_finish_roll(modifier, dc, forced_roll=None):
+        if forced_roll is not None:
+            d20_apply_result(forced_roll, modifier, dc)
+            return
+
         # Garante que cada nova rolagem resulte em um número diferente da última
         last = getattr(persistent, 'd20_last_final', None)
         roll = renpy.random.randint(1, 20)
@@ -172,17 +221,12 @@ init python:
             if roll == last:
                 roll = (last % 20) + 1
 
-        setattr(persistent, 'd20_last_final', roll)
-
-        store.d20_final = roll
-        store.d20_total = roll + modifier
-        store.d20_success = (store.d20_total >= dc)
-        store.d20_rolling = False
-        store.d20_time_left = 0.0
+        d20_apply_result(roll, modifier, dc)
 
 
 default consequência_ativada = {
     "jinsei_mentira_sonho": False,
+    "conhecer_estella": False,
     "esqueceu_pao": False,
     "pasta_nova": False,
     "jinsei_verdade_sonho": False,
@@ -192,7 +236,9 @@ default consequência_ativada = {
     "ajudar_estella_chave": False,
     "celular_estella": False,
     "jinsei_preocupada": False,
-    "respondeu_jinseipreocupada": False
+    "respondeu_jinseipreocupada": False,
+    "conheceu_estella_apartamento": False,
+    "conversa_intima_pai_e_filha_estella": False
 }
 
 screen final_text_screen():
@@ -227,6 +273,7 @@ label save_point:
         "Sim, salvar agora":
             $ amizade_commit()
             $ descricao_commit()
+            $ globals().pop("os", None)
             $ renpy.take_screenshot()
             call screen save
             "Jogo salvo com sucesso!"
@@ -243,6 +290,9 @@ define y = Character("Yuki Tatsuo", color="#2C3E50", image = "Yuki")
 define yn = Character("Yoshida Namikaze", color="#E67E22", image = "Yoshida")
 define kj = Character("Kenji", color="#C0392B", image = "Kenji")
 define ph = Character("Phiona", color="#8E44AD", image = "Phiona")
+define pe = Character("Pais Estella", color="#ffffff", image = "pais")
+define mel = Character("Melina Nascimento", color="#052ef7", image = "Melina")
+define ali = Character("Alisson Nascimento", color="#0389f7", image = "Alisson")
 
 label npc_speak(character, image_tag, text):
     show expression image_tag
@@ -283,6 +333,11 @@ default d20_final = None
 default d20_total = 0
 default d20_success = False
 default d20_time_left = 0.0
+default d20_was_natural_20 = False
+default d20_was_natural_1 = False
+default d20_natural_20_count = 0
+default d20_natural_1_count = 0
+default d20_last_result = None
 default atributos_edit = {}
 default atributos_confirmed = False
 default atributos_confirm_dialog = False
@@ -342,7 +397,7 @@ transform d20_shake:
     linear 0.06 xoffset -8
     repeat
 
-screen minigame_d20(dc=10, modifier=0, title="Teste de D20", reveal_result=True, atributo=None):
+screen minigame_d20(dc=10, modifier=0, title="Teste de D20", reveal_result=True, atributo=None, forced_roll=None):
     modal True
     zorder 300
     key "game_menu" action NullAction()
@@ -351,7 +406,7 @@ screen minigame_d20(dc=10, modifier=0, title="Teste de D20", reveal_result=True,
     timer 0.08 repeat True action If(d20_rolling, [
         SetVariable('d20_current', renpy.random.randint(1, 20)),
         SetVariable('d20_time_left', max(d20_time_left - 0.08, 0.0)),
-        If(d20_time_left <= 0.08, Function(d20_finish_roll, modifier, dc))
+        If(d20_time_left <= 0.08, Function(d20_finish_roll, modifier, dc, forced_roll))
     ])
 
     frame:
@@ -364,7 +419,7 @@ screen minigame_d20(dc=10, modifier=0, title="Teste de D20", reveal_result=True,
             yalign 0.5
             spacing 18
 
-            label _(title)
+            label game_tr(title)
             if atributo is not None:
                 text _("Atributo: [atributo_display_name(atributo)]    Dificuldade (DC): [dc]    Modificador: [modifier]")
             else:
@@ -416,6 +471,10 @@ screen minigame_d20(dc=10, modifier=0, title="Teste de D20", reveal_result=True,
                         yalign 0.5
                         spacing 12
                         text _("Resultado: [d20_final] + [modifier] = [d20_total]") size 42
+                        if d20_was_natural_20:
+                            text _("20 natural!") color "#ffd54f" size 34
+                        elif d20_was_natural_1:
+                            text _("1 natural!") color "#ff6b6b" size 34
                         if d20_success:
                             text _("Sucesso!") color "#00c853" size 44
                         else:
@@ -424,6 +483,10 @@ screen minigame_d20(dc=10, modifier=0, title="Teste de D20", reveal_result=True,
                 textbutton _("Continuar") action Return({
                     'success': d20_success,
                     'roll': d20_final,
+                    'natural_20': d20_was_natural_20,
+                    'natural_1': d20_was_natural_1,
+                    'natural_20_count': d20_natural_20_count,
+                    'natural_1_count': d20_natural_1_count,
                     'total': d20_total,
                     'dc': dc,
                     'modifier': modifier
@@ -459,7 +522,7 @@ screen atributos_distribution():
                     for attr, name in ATRIBUTOS_DEF:
                         hbox:
                             spacing 16
-                            text _("[name]") xminimum 140
+                            text atributo_display_name(attr) xminimum 140
                             text _("[atributos_edit.get(attr, 10)] (mod: [atributo_modifier_edit_value(attr):+d])")
                             textbutton _("-") action If(atributos_confirm_dialog, NullAction(), Function(atributos_adjust_action, attr, -1))
                             textbutton _("+") action If(atributos_confirm_dialog, NullAction(), Function(atributos_adjust_action, attr, 1))
@@ -491,7 +554,7 @@ screen atributos_distribution():
                     text _("Distribuição atual:") size 18 bold True
 
                     for attr, name in ATRIBUTOS_DEF:
-                        text _("[name]: [atributos_edit.get(attr, 10)] (mod: [atributo_modifier_edit_value(attr):+d])") size 16
+                        text _("[atributo_display_name(attr)]: [atributos_edit.get(attr, 10)] (mod: [atributo_modifier_edit_value(attr):+d])") size 16
 
                     text _("Pontos restantes: [atributos_points_remaining()]") size 16
 
@@ -502,13 +565,17 @@ screen atributos_distribution():
 
 # Label utilitário para reaproveitar o minigame em diferentes cenas
 # Use: "call rolar_d20 (dc=12, modifier=2, sucesso_label=\"minha_label_sucesso\", falha_label=\"minha_label_falha\", titulo=\"Teste de Força\")"
-label rolar_d20(dc=10, modifier=0, atributo=None, sucesso_label=None, falha_label=None, titulo="Teste de D20", reveal_result=True):
+label rolar_d20_base(dc=10, modifier=0, atributo=None, sucesso_label=None, falha_label=None, titulo="Teste de D20", reveal_result=True, forced_roll=None):
     # Reset do estado do D20 para evitar reutilizar resultado anterior
     $ d20_final = None
     $ d20_total = 0
     $ d20_success = False
     $ d20_rolling = False
     $ d20_time_left = 0.0
+    $ d20_was_natural_20 = False
+    $ d20_was_natural_1 = False
+    $ d20_natural_20_count = int(getattr(persistent, 'd20_natural_20_count', 0))
+    $ d20_natural_1_count = int(getattr(persistent, 'd20_natural_1_count', 0))
     $ d20_current = renpy.random.randint(1, 20)
 
     if atributo is not None:
@@ -516,7 +583,8 @@ label rolar_d20(dc=10, modifier=0, atributo=None, sucesso_label=None, falha_labe
         if titulo == "Teste de D20":
             $ titulo = "Teste de D20: %s" % atributo_display_name(atributo)
 
-    $ resultado = renpy.call_screen("minigame_d20", dc=dc, modifier=modifier, title=titulo, reveal_result=reveal_result, atributo=atributo)
+    $ resultado = renpy.call_screen("minigame_d20", dc=dc, modifier=modifier, title=titulo, reveal_result=reveal_result, atributo=atributo, forced_roll=forced_roll)
+    $ d20_last_result = resultado
     if resultado['success']:
         if sucesso_label is not None:
             jump expression sucesso_label
@@ -525,6 +593,18 @@ label rolar_d20(dc=10, modifier=0, atributo=None, sucesso_label=None, falha_labe
         if falha_label is not None:
             jump expression falha_label
         return False
+
+label rolar_d20(dc=10, modifier=0, atributo=None, sucesso_label=None, falha_label=None, titulo="Teste de D20", reveal_result=True):
+    call rolar_d20_base(dc=dc, modifier=modifier, atributo=atributo, sucesso_label=sucesso_label, falha_label=falha_label, titulo=titulo, reveal_result=reveal_result, forced_roll=None) 
+    return _return
+
+label rolar_d20_teste_20(dc=10, modifier=0, atributo=None, sucesso_label=None, falha_label=None, titulo="Teste de D20", reveal_result=True):
+    call rolar_d20_base(dc=dc, modifier=modifier, atributo=atributo, sucesso_label=sucesso_label, falha_label=falha_label, titulo=titulo, reveal_result=reveal_result, forced_roll=20) 
+    return _return
+
+label rolar_d20_teste_1(dc=10, modifier=0, atributo=None, sucesso_label=None, falha_label=None, titulo="Teste de D20", reveal_result=True):
+    call rolar_d20_base(dc=dc, modifier=modifier, atributo=atributo, sucesso_label=sucesso_label, falha_label=falha_label, titulo=titulo, reveal_result=reveal_result, forced_roll=1) 
+    return _return
 
 # Notificações de consequência: animação e destaque visual
 transform notify_slide_in:
@@ -550,7 +630,7 @@ screen consequence_notify(message, duration=3):
             xpadding 14
             ypadding 10
             background Solid("#000c")
-            text message color "#FFFFFF" size 34 bold True at notify_pulse
+            text game_tr(message) color "#FFFFFF" size 34 at notify_pulse
 
         timer duration action Return()
 
@@ -878,6 +958,121 @@ image Yoshida normal:
     yalign 1.0
 
 
+#Estella roupa casual
+
+image side Estella envergonhada2 = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/StellaEnvergonhada.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella felizz = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/Stella_feliz.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella felizz2 = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/Stella_feliz2.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella felizz3 = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/Stella_feliz3.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella smugg = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/Stella_smug.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella envergonhadaa = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/Stella_envergonhada.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella Triste1 = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/Stella_Triste.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella Triste2 = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/Stella_triste2.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella Brava = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/Stella_Brava.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella Brava2 = im.Scale("images/Personagens/Estella Nascimento/Estella Casual/Stella_Brava2.png", 470, 570, xoffset=0, yoffset=100)
+image side Estella felizchave = im.Scale("images/Personagens/Estella Nascimento/Estella_felizchave.png", 470, 570, xoffset=0, yoffset=100)
+
+image Stella felizchave:
+    "images/Personagens/Estella Nascimento/Estella_felizchave.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0 # Ou 1.0 se quiser que ela fique "em pé" no chão da tela
+
+image Stella envergonhada2:
+    "images/Personagens/Estella Nascimento/Estella Casual/StellaEnvergonhada.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0 # Ou 1.0 se quiser que ela fique "em pé" no chão da tela
+
+image Stella felizz:
+    "images/Personagens/Estella Nascimento/Estella Casual/Stella_feliz.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0 # Ou 1.0 se quiser que ela fique "em pé" no chão da tela
+
+image Stella felizz2:
+    "images/Personagens/Estella Nascimento/Estella Casual/Stella_feliz2.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0 # Ou 1.0 se quiser que ela fique "em pé" no chão da tela
+
+image Stella felizz3:
+    "images/Personagens/Estella Nascimento/Estella Casual/Stella_feliz3.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0 # Ou 1.0 se quiser que ela fique "em pé" no chão da tela
+
+image Stella smugg:
+    "images/Personagens/Estella Nascimento/Estella Casual/Stella_smug.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0 # Ou 1.0 se quiser que ela fique "em pé" no chão da tela
+
+image Stella envergonhadaa:
+    "images/Personagens/Estella Nascimento/Estella Casual/Stella_envergonhada.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0 # Ou 1.0 se quiser que ela fique "em pé" no chão da tela
+
+image Stella Triste1:
+    "images/Personagens/Estella Nascimento/Estella Casual/Stella_Triste.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0
+
+image Stella Triste2:
+    "images/Personagens/Estella Nascimento/Estella Casual/Stella_triste2.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0
+
+image Stella Brava:
+    "images/Personagens/Estella Nascimento/Estella Casual/Stella_Brava.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0
+
+image Stella Brava2:
+    "images/Personagens/Estella Nascimento/Estella Casual/Stella_Brava2.png"
+    zoom 0.7
+    xalign 0.5
+    yalign 1.0
+
+# Pais separados
+
+image side Alisson feliz = im.Scale("images/Personagens/Estella Nascimento/Pai/Alisson_Feliz.png", 627, 550, xoffset=-50, yoffset=150)
+image side Alisson Bravo = im.Scale("images/Personagens/Estella Nascimento/Pai/Alisson_Bravo.png", 627, 550, xoffset=-50, yoffset=150)
+image side Alisson Triste = im.Scale("images/Personagens/Estella Nascimento/Pai/Alisson_Triste.png", 627, 550, xoffset=-50, yoffset=150)
+image side Alisson Envergonhado = im.Scale("images/Personagens/Estella Nascimento/Pai/Alisson_Envergonhado.png", 627, 550, xoffset=-50, yoffset=150)
+
+
+image Alisson Bravo:
+    "images/Personagens/Estella Nascimento/Pai/Alisson_Bravo.png"
+    zoom 0.85
+    xalign 0.5
+    yalign 1.5
+image Alisson Triste:
+    "images/Personagens/Estella Nascimento/Pai/Alisson_Triste.png"
+    zoom 0.85
+    xalign 0.5
+    yalign 1.5
+image Alisson Feliz:
+    "images/Personagens/Estella Nascimento/Pai/Alisson_Feliz.png"
+    zoom 0.85
+    xalign 0.5
+    yalign 1.5
+image Alisson Envergonhado:
+    "images/Personagens/Estella Nascimento/Pai/Alisson_Envergonhado.png"
+    zoom 0.85
+    xalign 0.5
+    yalign 1.5
+
+
+image side Melina feliz = im.Scale("images/Personagens/Estella Nascimento/Mãe/MelinaFeliz.png", 627, 627, xoffset=-50, yoffset=150)
+
+
+
+
 image side Estella normal = im.Scale("images/Personagens/Estella Nascimento/StellaNascimento.png", 470, 570, xoffset=0, yoffset=100)
 image side Estella envergonhada = im.Scale("images/Personagens/Estella Nascimento/StellaNascimentoEnvergonhada.png", 470, 570, xoffset=0, yoffset=100)
 image side Estella feliz = im.Scale("images/Personagens/Estella Nascimento/StellaNascimentoFeliz.png", 470, 570, xoffset=0, yoffset=100)
@@ -890,7 +1085,7 @@ image side Estella smug = im.Scale("images/Personagens/Estella Nascimento/Stella
 
 image Stella normal:
     "images/Personagens/Estella Nascimento/StellaNascimento.png"
-    zoom 0.5
+    zoom 0.7
     xalign 0.5
     yalign 1.0 # Ou 1.0 se quiser que ela fique "em pé" no chão da tela
 
@@ -944,9 +1139,9 @@ image Stella smug:
 
 image side Yuki normal = im.Scale("images/Personagens/Yuki Tatsuo/YukiTatsuo.png", 470, 570, xoffset=0, yoffset=100)
 
-image side Kenji normal = im.Scale("images/Personagens/Kenji/Kenji.png", 500, 750, xoffset=0, yoffset=40)
+image side Kenji = im.Scale("images/Personagens/Kenji/Kenji.png", 500, 750, xoffset=0, yoffset=300)
 
-image Kenji normal:
+image Kenji normal1:
     "images/Personagens/Kenji/Kenji.png"
     zoom 2.0
     xalign 0.5
@@ -987,7 +1182,7 @@ image Phiona feliz3:
 
 image Phiona normal:
     "images/Personagens/Kioku Aida/Phiona.png"
-    zoom 0.7
+    zoom 0.85
     xalign 0.5
     yalign 1.0
 
@@ -997,10 +1192,26 @@ image Kiokujovem normal:
     xalign 0.5
     yalign 1.0
 
+image PaisEstella primeiroencontro:
+    "images/Personagens/Estella Nascimento/Pais/primeiroencontro.png"
+    zoom 0.85
+    xalign 0.5
+    yalign 1.0
+
+image PaisEstella felizes:
+    "images/Personagens/Estella Nascimento/Pais/paisfelizes.png"
+    zoom 0.85
+    xalign 0.5
+    yalign 1.0
+
+
+
+
 
 
 image Ato1 = "Atos/Ato I/AtoI.png"
 image Cap1 = "Atos/Ato I/Capítulo_1.png"
+image Cap2 = "chapters/cap2.png"
 image Quarto1 = "Predio/QuartoManha.png"
 image Quarto2 = "Predio/QuartoMadrugada.png"
 image narrador = "blackbackground.png"
@@ -1037,12 +1248,30 @@ image biblioteca2 = "Escola/Biblioteca/Biblioteca_2.png"
 image biblioteca3 = "Escola/Biblioteca/Biblioteca_3.png"
 image hospital = "Cidade/Hospital/quarto_hospital.png"
 image maekioku = "Personagens/Kioku Aida/Mae_Kioku.png"
+image Phiona_feliz = "Personagens/Kioku Aida/Phiona_feliz.png"
 image harutachi = "Personagens/Kioku Aida/HaruTachibana.png"
 image restaurantemeiodia = "Cidade/Restaurante/restaurante_dia2.png"
 image restaurantemeiodiacomida = "Cidade/Restaurante/restaurante_dia2comida.png"
 image restaurantetarde = "Cidade/Restaurante/restaurante_tarde.png"
 image ruanoiteverao = "Cidade/Rua/Rua_Verao_Noite.png"
 image estacaoonibusnoite = "Cidade/Parada de Onibus/parada_onibus_noite1.png"
+
+image inicialinoite = "gui/Temple_Summer_Night.png"
+image inicial = "gui/Temple_Summer_Day.png"
+
+# Apartamento Estella
+
+image cozinhaestelladia = "Predio/Kitchen_Day.png"
+image cozinhaestellanoite = "Predio/Kitchen_Night.png"
+image salaestelladia = "Predio/Livingroom_Day.png"
+image salaestellatarde = "Predio/Livingroom_Night.png"
+image salaestellanoite = "Predio/Livingroom_Dark.png"
+
+
+
+
+
+
 
 # Casa Antiga do Kioku
 image casakioku = "Antiga Casa/outside1.jpg"
@@ -1054,7 +1283,7 @@ image casakiokucorredor = "Antiga Casa/hallway.jpg"
 image casakiokusaladeestar = "Antiga Casa/lounge.jpg"
 image casakiokuquartomae = "Antiga Casa/master bedroom.jpg"
 image casakiokuquarto = "Antiga Casa/single bedroom.jpg"
-image chegoutradekioku = "Personagens/Kioku Aida/#####/chegoutardeKioku.png"
+image chegoutardekioku = "Personagens/Kioku Aida/#####/chegoutardeKioku.png"
 
 image mingaudormindo = "Personagens/Mingau/fuff_zzz.png"
 image minguaufeliz = "Personagens/Mingau/fuff_smug.png"
@@ -1071,25 +1300,30 @@ label start:
     # This shows a character sprite. A placeholder is used, but you can
     # replace it by adding a file named "eileen happy.png" to the images
     # directory.
-    
-    show narrador
-    with pixellate
+    if periodo_real_do_dia() == "dia":
+        scene inicial
+        with pixellate
+    else:
+        scene inicialinoite
+        with pixellate
     show screen achievement_queue_watcher
 
 
 label escolhamodo:
-    # $ receive_unknown_message("Estella", "Oii, é o Kioku?", "estella_contato.png")
+    "{cps=40}Antes de qualquer coisa, um aviso: Algumas músicas podem ser mais altas que outras, então é recomendado utilizar o volume da Música em 60%%-80%%. O Volume do Som é recomendado 100%%. Aproveite a Demo."
+    pause 1.0
     "{cps=40}Antes de começarmos, por favor escolha o modo de jogo:{/cps}"
+    jump quem_e_você
 
 
-    jump finaldemo
+    #jump modojogo
 
 label modojogo:
     menu:
         "Modo História":
             "{cps=40}{i}Neste modo, você poderá aproveitar a história completamente, porém terão informações a mais.{/i}{/cps}"
             "{cps=40}{i}Como exemplo, você saberá quando uma escolha terá consequências, escolhas que personagens poderão lembra-las mais tarde, entre outras coisas...{/i}{/cps}"
-            "{cps=40}{i}Dito isso, você tem certeza que deseja escolher esta opção?"
+            "{cps=40}{i}Dito isso, você tem certeza que deseja escolher esta opção?{/i}{/cps}"
             menu:
                 "Sim":
                     $ modohistoria = True
@@ -1101,13 +1335,14 @@ label modojogo:
             "{cps=40}{i}Diferente do Modo História, aqui você terá uma experiência mais imersiva.{/i}{/cps}"
             "{cps=40}{i}Você não saberá quando uma escolha terá consequências, escolhas que personagens poderão lembra-las mais tarde, caberá a você decidir se aquela escolha foi a certa.{/i}{/cps}"
             "{cps=40}{i}Esteja ciente que algumas escolhas poderão te levar a finais \"ruins\".{/i}{/cps}"
+            "{cps=40}{i}Está entre aspas, pois aqui não existem finais \"ruins\" e finais \"bons\", aqui existem...\nApenas Finais.{/cps}{/i}"
             "{cps=40}{i}Este modo é o recomendado pelo desenvolvedor, para que você se sinta na pela de Kioku, e sinta que realmente suas escolhas podem afetar o futuro, mesmo não sabendo na hora.{/i}{/cps}"
-            "{cps=40}{i}Dito isso, você tem certeza que deseja escolher esta opção?"
+            "{cps=40}{i}Dito isso, você tem certeza que deseja escolher esta opção?{/i}{/cps}"
             menu:
                 "Sim":
                     $ modoimersivo = True
                     "{cps=40}{i}Você escolheu o Modo Imersivo.{/i}{/cps}"
-                    jump escola
+                    jump tutorial
                 "Não, voltar":
                     jump modojogo
 
@@ -1115,20 +1350,25 @@ label tutorial:
     "{cps=30}{i}Antes de começarmos, gostaria de te mostrar algumas coisas...{/i}{/cps}"
     "{cps=30}{i}Primeiro, vamos falar sobre os atributos...{/i}{/cps}"
     "{cps=30}{i}Durante o jogo, você terá a oportunidade de distribuir pontos em 4 atributos diferentes: Sorte, Agilidade, Lábia e Força...{/i}{/cps}"
+    "{cps=30}{i}A distribuição final que vocês terão logo mais, é inspirada em D&D (Dungeons & Dragons), ou seja, os pontos são por modificadores, mas relaxe é fácil.{/cps}{/i}"
+    "{cps=30}{i}A cada 2 pontos a mais num atributo, você recebe +1 de modificador, o modificador é o que vai te dizer e mostrar se você irá bem ou não no teste.{/cps}{/i}"
+    "{cps=40}{i}Para essa demo, não utilizaremos o Atributo Força, então para não gastar pontos atoa neste atributo, pelo menos na Demo, ignore o atributo Força.{/cps}{/i}"
     "{cps=30}{i}Cada um desses atributos pode influenciar em certas escolhas, ou até mesmo desbloquear novas opções...{/i}{/cps}"
     "{cps=30}{i}Então escolha sabiamente onde distribuir seus pontos...{/i}{/cps}"
     "{cps=30}{i}E por último, mas não menos importante, temos o sistema de mensagens...{/i}{/cps}"
+    $ phone_demo_locked = True
     show screen phone_button
     show screen phone_notification
     show screen phone_system
     "{cps=30}{i}Está vendo este celular no canto superior direito? Ele é uma parte importante do jogo...{/i}{/cps}"
     "{cps=30}{i}Durante a história, você receberá mensagens de outros personagens, e também mensagens antigas, isso serve para dar um aprofundamento à história...{/i}{/cps}"
+    $ phone_demo_locked = False
     hide screen phone_button
     hide screen phone_notification
     hide screen phone_system  
     "{cps=30}{i}As conversas no celular você poderá escolher respostas, e essas respostas podem influenciar a história, ou até mesmo desbloquear novas opções...{/i}{/cps}"
     "{cps=30}{i}Então preste atenção nas mensagens que você recebe, e escolha suas respostas com cuidado...{/i}{/cps}"
-    "{cps=30}{i}Toda e qualquer escolha sua afeterá o futuro, então preste atenção nos detalhes...{/i}{/cps}"
+    "{cps=30}{i}Toda e qualquer escolha sua afetará o futuro, então preste atenção nos detalhes...{/i}{/cps}"
     "{cps=30}{i}Agora que você sabe um pouco mais sobre os atributos e o sistema de mensagens, está na hora de começar a história...{/i}{/cps}"
     jump jogo
 

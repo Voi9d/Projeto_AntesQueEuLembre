@@ -33,7 +33,7 @@ screen chapter_select():
 
     tag menu
 
-    add gui.main_menu_background
+    add menu_background_image("main")
 
     frame:
         background "#000000cc"

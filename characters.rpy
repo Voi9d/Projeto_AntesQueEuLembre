@@ -9,9 +9,9 @@ default codex_relacoes_custom = {}
 # Persistent stores for amizade/romance
 default persistent.codex_amizade = {}
 default persistent.codex_romance = {}
-default persistent.codex_amizade_level5_unlocked = {}
 default persistent.codex_amizade_seed_version = 0
 default persistent.codex_descricoes = {}
+default persistent.codex_desbloqueados = []
 default persistent.atributos = {}
 default persistent.atributos_confirmed = False
 
@@ -47,7 +47,6 @@ init -2 python:
         ## "KiokuAida": 50,
         "jinsei": 50,  
         "subaru": -9, 
-        "estella": 0,
     }
 
     # Seed version: bump this to force re-seeding defaults on next run.
@@ -61,10 +60,10 @@ init -2 python:
         persistent.codex_amizade = {}
 
     try:
-        if not hasattr(persistent, 'codex_amizade_level5_unlocked'):
-            persistent.codex_amizade_level5_unlocked = {}
+        if not hasattr(persistent, 'codex_desbloqueados') or persistent.codex_desbloqueados is None:
+            persistent.codex_desbloqueados = []
     except Exception:
-        persistent.codex_amizade_level5_unlocked = {}
+        persistent.codex_desbloqueados = []
 
     # Runtime (non-persistent) store for amizade during a session. Changes here
     # are not written to disk until `amizade_commit()` is called.
@@ -220,68 +219,9 @@ init -2 python:
         amizade_set_points(pid, pts)
         return pts
 
-    def amizade_level5_min_points():
-        for lvl in AMIZADE_LEVELS:
-            if lvl['level'] == 5:
-                return int(lvl['min'])
-        return 101
-
-    def amizade_level4_max_points():
-        for lvl in AMIZADE_LEVELS:
-            if lvl['level'] == 4:
-                return int(lvl['max'])
-        return 100
-
-    def amizade_level5_desbloqueado(pid):
-        try:
-            return bool(persistent.codex_amizade_level5_unlocked.get(pid, False))
-        except Exception:
-            return False
-
-    def desbloquear_amizade_level5(pid, garantir_pontos=True, mostrar_notificacao=True):
-        """Libera o level 5 de amizade para um personagem.
-
-        Use na rota certa:
-            $ desbloquear_amizade_level5("jinsei")
-
-        Antes disso, pontos acima do maximo do level 4 continuam acumulando,
-        mas o nivel mostrado fica travado no 4.
-        """
-        try:
-            if not hasattr(persistent, 'codex_amizade_level5_unlocked'):
-                persistent.codex_amizade_level5_unlocked = {}
-            persistent.codex_amizade_level5_unlocked[pid] = True
-            personagens_db.setdefault(pid, {})['romance_unlocked'] = True
-
-            current_pts = amizade_get_points(pid)
-            target_pts = current_pts
-            if garantir_pontos:
-                target_pts = max(current_pts, amizade_level5_min_points())
-            amizade_set_points(pid, target_pts)
-            persistent.codex_amizade[pid] = int(target_pts)
-
-            renpy.save_persistent()
-
-            if mostrar_notificacao:
-                try:
-                    nome = personagens_db.get(pid, {}).get('nome', pid)
-                    renpy.call_screen('diario_notify', nome=nome)
-                except Exception:
-                    pass
-
-            return True
-        except Exception:
-            return False
-
-    desbloquear_level5 = desbloquear_amizade_level5
-    unlock_level5 = desbloquear_amizade_level5
-
     def amizade_get_level(pid):
         """Calcula nível atual baseado nos thresholds definidos em AMIZADE_LEVELS."""
         pts = amizade_get_points(pid)
-        if not amizade_level5_desbloqueado(pid) and pts > amizade_level4_max_points():
-            return 4
-
         for lvl in AMIZADE_LEVELS:
             if pts >= lvl['min'] and pts <= lvl['max']:
                 return lvl['level']
@@ -313,7 +253,7 @@ init -2 python:
             pass
         try:
             nome = personagens_db.get(pid, {}).get('nome', pid)
-            renpy.call_screen('diario_notify', nome=nome)
+            renpy.call_screen('diario_notify', nome=game_tr(nome))
         except Exception:
             pass
 
@@ -390,30 +330,40 @@ init -2 python:
 
     def reset_game_progress():
         """Reset persistent codex progress and delete all save files."""
+        global codex_unsaved_changes, codex_personagem_selecionado
         import os
 
         try:
             persistent.codex_amizade = {}
             persistent.codex_descricoes = {}
+            persistent.codex_desbloqueados = []
             persistent.codex_romance = {}
-            persistent.codex_amizade_level5_unlocked = {}
             persistent.achievements = {}
             persistent.atributos = {}
             persistent.atributos_confirmed = False
+            persistent.d20_last_final = None
+            persistent.d20_natural_20_count = 0
+            persistent.d20_natural_1_count = 0
             persistent.codex_amizade_seed_version = 0
             persistent._codex_one_time_jinsei_reset_done = False
             runtime_codex_amizade.clear()
             runtime_codex_descricoes.clear()
             codex_prechange_amizade_snapshot.clear()
             codex_prechange_descricoes_snapshot.clear()
+            codex_relacoes_custom.clear()
             achievement_notify_queue.clear()
-            global codex_unsaved_changes
             codex_unsaved_changes = False
+            codex_personagem_selecionado = None
         except Exception:
             pass
 
         try:
             for pid in list(personagens_ordem):
+                desbloqueado_inicial = bool(personagens_db.get(pid, {}).get('desbloqueado_inicial', False))
+                personagens_db.setdefault(pid, {})["desbloqueado"] = desbloqueado_inicial
+                if desbloqueado_inicial and pid not in persistent.codex_desbloqueados:
+                    persistent.codex_desbloqueados.append(pid)
+
                 if pid in persistent.codex_amizade:
                     continue
 
@@ -502,6 +452,16 @@ init python:
         if relacoes is None:
             relacoes = []
 
+        try:
+            if not hasattr(persistent, 'codex_desbloqueados') or persistent.codex_desbloqueados is None:
+                persistent.codex_desbloqueados = []
+            if desbloqueado and pid not in persistent.codex_desbloqueados:
+                persistent.codex_desbloqueados.append(pid)
+                renpy.save_persistent()
+            desbloqueado_atual = bool(desbloqueado or pid in persistent.codex_desbloqueados)
+        except Exception:
+            desbloqueado_atual = bool(desbloqueado)
+
         personagens_db[pid] = {
             "id": pid,
             "nome": nome,
@@ -510,7 +470,8 @@ init python:
             "descricao": descricao,
             "descricao_bloqueado": descricao_bloqueado,
             "relacoes": relacoes,
-            "desbloqueado": desbloqueado,
+            "desbloqueado_inicial": bool(desbloqueado),
+            "desbloqueado": desbloqueado_atual,
 }
 
         if pid not in personagens_ordem:
@@ -540,26 +501,47 @@ init python:
 
 
     def personagem_desbloqueado(pid):
+        try:
+            if pid in getattr(persistent, 'codex_desbloqueados', []):
+                return True
+        except Exception:
+            pass
         return personagens_db[pid]["desbloqueado"]
 
 
     def desbloquear_Personagem(pid):
         if pid in personagens_db:
+            ja_desbloqueado = personagem_desbloqueado(pid)
             personagens_db[pid]["desbloqueado"] = True
             try:
-                nome = personagens_db.get(pid, {}).get('nome', pid)
-                renpy.call_screen('diario_notify', nome=nome)
+                if not hasattr(persistent, 'codex_desbloqueados') or persistent.codex_desbloqueados is None:
+                    persistent.codex_desbloqueados = []
+                if pid not in persistent.codex_desbloqueados:
+                    persistent.codex_desbloqueados.append(pid)
+                    renpy.save_persistent()
+            except Exception:
+                pass
+            try:
+                if not ja_desbloqueado:
+                    nome = personagens_db.get(pid, {}).get('nome', pid)
+                    renpy.call_screen('diario_notify', nome=game_tr(nome))
             except Exception:
                 pass
 
     def bloquear_Personagem(pid):
         if pid in personagens_db:
             personagens_db[pid]["desbloqueado"] = False
+            try:
+                if pid in persistent.codex_desbloqueados:
+                    persistent.codex_desbloqueados.remove(pid)
+                    renpy.save_persistent()
+            except Exception:
+                pass
 
 
     def nome_personagem(pid):
         p = personagens_db[pid]
-        return p["nome"] if personagem_desbloqueado(pid) else "?????"
+        return game_tr(p["nome"]) if personagem_desbloqueado(pid) else "?????"
 
 
     def idade_personagem(pid):
@@ -570,11 +552,11 @@ init python:
     def descricao_personagem(pid):
         p = personagens_db[pid]
         if personagem_desbloqueado(pid):
-            base = p.get("descricao", "") or ""
+            base = game_tr(p.get("descricao", "") or "")
             try:
-                extras = list(runtime_codex_descricoes.get(pid, []))
+                extras = [game_tr(x) for x in list(runtime_codex_descricoes.get(pid, []))]
                 if not extras:
-                    extras = list(persistent.codex_descricoes.get(pid, []))
+                    extras = [game_tr(x) for x in list(persistent.codex_descricoes.get(pid, []))]
             except Exception:
                 extras = []
             if extras:
@@ -585,7 +567,7 @@ init python:
                     sep = '. '
                 return base_strip + sep + ' '.join(extras)
             return base
-        return p["descricao_bloqueado"] or "???"
+        return game_tr(p["descricao_bloqueado"]) or "???"
 
     def relacao_base(pid, chave):
         p = personagens_db[pid]
@@ -637,28 +619,27 @@ init python:
     cadastrar_personagem(
         "KiokuAida",
         nome="Kioku Aida",
-        idade= 18,
+        idade= 19,
         imagem="images/personagens/Kioku Aida/KiokuCNormal.png",
-        descricao="não sei o que não sei o que lá",
-        descricao_bloqueado="Uma presença desconhecida. Ainda não sei quase nada sobre essa pessoa.",
+        descricao="Kioku Aida... esse sou eu. Ou pelo menos acho que sou. Às vezes sinto que esqueço coisas simples, outras vezes tenho a impressão estranha de que existe algo faltando em mim. Talvez seja apenas cansaço. Ou talvez eu pense demais.",
         desbloqueado=True,
     )
 
     cadastrar_personagem(
         "jinsei",
         nome="Jinsei Boto",
-        idade=19,
+        idade=18,
         imagem="images/Personagens/Jinsei Boto/Jinsei Boto Tela Escola/JinseiNormal.png",
-        descricao="Ele fala pouco, mas cada palavra parece pensada. Sinto que existe uma tensão nele, como se estivesse sempre se segurando.",
+        descricao="Jinsei Boto. Somos amigos há tempo suficiente pra ela me irritar sem pedir permissão. Ela gosta de agir como se tivesse resposta pra tudo... e, honestamente, às vezes isso é irritantemente útil.",
         descricao_bloqueado="Um rosto difícil de esquecer, mesmo antes de entender quem é.",
-        desbloqueado=True,
+        desbloqueado=False,
     )
     cadastrar_personagem(
         "estella",
         nome="Estella Nascimento",
-        idade=18,
+        idade=19,
         imagem="images/Personagens/Estella Nascimento/StellaNascimento.png",
-        descricao="Estella Nascimento... minha nova vizinha, ela é uma garota de cabelos prateados e olhos azuis que se mudou para a casa ao lado recentemente. Ela tem um jeito misterioso e reservado, mas também parece ser gentil e atenciosa. Ainda não tive muitas oportunidades de conversar com ela, mas sinto que há algo especial nela que me intriga.",
+        descricao="Estella Nascimento... Ela é uma garota de cabelos prateados e olhos azuis. Ela tem um jeito misterioso e reservado, mas também parece ser gentil e atenciosa. Ainda não tive muitas oportunidades de conversar com ela, mas sinto que há algo especial nela que me intriga... Como se eu já conhecesse ela?",
         descricao_bloqueado="Uma pessoa misteriosa. Não sei nada sobre ela ainda.",
         desbloqueado=False,
     )
@@ -667,8 +648,16 @@ init python:
         nome="Subaru Ichida",
         idade=20,
         imagem="images/Personagens/Subaru Ichida/SubaruIchidanormal.png",
-        descricao="Subaru Ichida... um garoto ",
+        descricao="Subaru Ichida. Presidente do clube estudantil e, aparentemente, alguém que não foi muito com a minha cara. Tem esse jeito irritante de agir como se soubesse exatamente como me tirar do sério.",
         descricao_bloqueado="Uma pessoa enigmática. Não sei nada sobre ele ainda.",
+        desbloqueado=False,
+    )
+    cadastrar_personagem(
+        "yuki",
+        nome="Yuki Tatsuo",
+        idade=38,
+        imagem="images/Personagens/Yuki Tatsuo/YukiTatsuo.png",
+        descricao="Professor Yuki Tatsuo. Sério, organizado e provavelmente mais paciente do que demonstra. Tenho a impressão de que ele percebe mais coisas do que costuma comentar.",
         desbloqueado=False,
     )
 
@@ -758,7 +747,7 @@ screen personagens_codex():
 
                 vbox:
                     spacing 12
-                    text "Lista" size 30 bold True
+                    text _("Lista") size 30
 
                     viewport:
                         draggable True
@@ -791,12 +780,12 @@ screen personagens_codex():
                                                 add Transform(p["imagem"], xysize=(78, 78))
                                             else:
                                                 add Solid("#000")
-                                                text "?" size 42 bold True xalign 0.5 yalign 0.5
+                                                text "?" size 42 xalign 0.5 yalign 0.5
 
                                         vbox:
                                             spacing 2
                                             text nome_personagem(cid) size 22
-                                            text ("Desbloqueado" if personagem_desbloqueado(cid) else "Bloqueado") size 16
+                                            text (_("Desbloqueado") if personagem_desbloqueado(cid) else _("Bloqueado")) size 16
 
             # COLUNA DIREITA: FICHA DO PERSONAGEM
             frame:
@@ -808,6 +797,8 @@ screen personagens_codex():
                     $ p = personagens_db.get(pid, {})
                     $ relacoes_lista = list(p.get("relacoes", []))
                     $ desbloqueado = personagem_desbloqueado(pid)
+                    $ imagem_codex_w = 340 if pid == "jinsei" else 280
+                    $ imagem_codex_h = 380
 
                     vbox:
                         spacing 18
@@ -819,25 +810,25 @@ screen personagens_codex():
                             xfill True
 
                             fixed:
-                                xsize 280
-                                ysize 380
+                                xsize imagem_codex_w
+                                ysize imagem_codex_h
 
                                 if desbloqueado:
-                                    add Transform(p["imagem"], xysize=(280, 380))
+                                    add Transform(p["imagem"], xysize=(imagem_codex_w, imagem_codex_h))
                                 else:
                                     add Solid("#000")
-                                    text "?" size 140 bold True xalign 0.5 yalign 0.5
+                                    text "?" size 140 xalign 0.5 yalign 0.5
 
                             vbox:
                                 spacing 10
                                 xfill True
 
-                                text (p["nome"] if desbloqueado else "???") size 40 bold True
-                                text "Idade: [idade_personagem(pid)]" size 24
+                                text (game_tr(p["nome"]) if desbloqueado else "???") size 40 
+                                text _("Idade: [idade_personagem(pid)]") size 24
 
                                 null height 10
 
-                                text "Diário" size 22 bold True
+                                text _("Diário") size 22
                                 text descricao_personagem(pid) size 20 xmaximum 520
 
                                 if pid == "KiokuAida" and persistent.atributos_confirmed:
@@ -848,7 +839,7 @@ screen personagens_codex():
 
                                         vbox:
                                             spacing 10
-                                            text "Atributos" size 24 bold True
+                                            text _("Atributos") size 24
                                             hbox:
                                                 spacing 10
                                                 xfill True
@@ -863,16 +854,16 @@ screen personagens_codex():
                                                             spacing 6
                                                             xalign 0.5
                                                             yalign 0.5
-                                                            text _("[name[:3].upper()]") size 18 bold True
+                                                            text atributo_display_name(attr)[:3].upper() size 18 
                                                             hbox:
                                                                 spacing 6
                                                                 xalign 0.5
-                                                                text _("[persistent.atributos.get(attr, 10)]") size 32 bold True
-                                                                text _("([atributo_modifier_value(attr):+d])") size 22 bold True
+                                                                text _("[persistent.atributos.get(attr, 10)]") size 32 
+                                                                text _("([atributo_modifier_value(attr):+d])") size 22
 
                                 # Colocar as fichas/bares logo abaixo da descrição
-                                # Render the relationships frame only for non-player characters
-                                if pid != "KiokuAida":
+                                # Estella is a special NPC and does not use relationship bars.
+                                if pid not in ("KiokuAida", "estella", "yuki"):
                                     frame:
                                         xfill True
                                         padding (16, 16)
@@ -895,7 +886,7 @@ screen personagens_codex():
                                             # text "Debug relations: [_rel_names]" size 14 color "#f88"
 
                                             if desbloqueado:
-                                                text "Relacionamentos" size 24 bold True
+                                                text _("Relacionamentos") size 24
                                                 # Sistema unificado: apenas a barra de Amizade
                                                 python:
                                                     pts = amizade_get_points(pid)
@@ -910,7 +901,7 @@ screen personagens_codex():
                                                     filled = int(520 * pct)
                                                 vbox:
                                                     spacing 6
-                                                    text "Relacionamento —  %s" % info['name'] size 18
+                                                    text game_tr_format("Relacionamento - {nome}", nome=game_tr(info['name'])) size 18
                                                     # Render the bar as a single stacked area: dark background
                                                     # with the filled color overlaid to the left.
                                                     fixed:
@@ -927,13 +918,13 @@ screen personagens_codex():
                                                     romance_max = 100
                                                     romance_filled = int(520 * (float(romance_pts) / float(max(1, romance_max)))) if romance_ok else 0
                                                 if romance_ok:
-                                                    text "Romance" size 18
+                                                    text _("Romance") size 18
                                                     frame background Solid("#222") xmaximum 520 xminimum 520 ymaximum 16 yminimum 16:
                                                         null
                                                     frame background Solid("#ff77aa") xmaximum romance_filled xminimum 0 ymaximum 16 yminimum 16:
                                                         null
                                             else:
-                                                text "As fichas de relacionamento só aparecem quando o personagem é desbloqueado." size 18
+                                                text _("As fichas de relacionamento só aparecem quando o personagem é desbloqueado.") size 18
 
                 else:
-                    text "Nenhum personagem selecionado." size 22
+                    text _("Nenhum personagem selecionado.") size 22

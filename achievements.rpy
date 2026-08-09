@@ -4,9 +4,16 @@ default persistent.achievements = {}
 
 # Runtime queue for pending achievement notifications (not persistent)
 default achievement_notify_queue = []
+default achievement_unlock_sound = "audio/SoundsEffects/conquista_desbloqueada.mp3"
 init python:
+    if "achievement_queue_watcher" not in config.overlay_screens:
+        config.overlay_screens.append("achievement_queue_watcher")
+
+    globals().pop("os", None)
+
     # Runtime list of achievement IDs that have been registered in code this session.
     registered_ach_ids = []
+    achievement_registry = {}
 init python:
     # Persistent storage for achievements. Use `default persistent.achievements` above
     # so the linter and engine know this persistent exists.
@@ -29,6 +36,17 @@ init python:
         except Exception:
             pass
 
+        achievement_registry[aid] = {
+            'name': name,
+            'desc': desc,
+            'icon': icon,
+            'hide_desc': bool(hide_desc),
+            'hide_name': bool(hide_name),
+            'unlocked': False,
+            'discovered': False,
+            'unlocked_time': None,
+        }
+
         if aid in persistent.achievements:
             # If the achievement already exists, sync visibility flags so
             # changing the `add_achievement(...)` call updates presentation
@@ -36,6 +54,15 @@ init python:
             try:
                 ach = persistent.achievements[aid]
                 changed = False
+                if ach.get('name') != name:
+                    ach['name'] = name
+                    changed = True
+                if ach.get('desc') != desc:
+                    ach['desc'] = desc
+                    changed = True
+                if ach.get('icon') != icon:
+                    ach['icon'] = icon
+                    changed = True
                 if ach.get('hide_desc') != bool(hide_desc):
                     ach['hide_desc'] = bool(hide_desc)
                     changed = True
@@ -58,11 +85,6 @@ init python:
             'discovered': False,
             'unlocked_time': None,
         }
-        try:
-            # Track registered IDs in this session for possible cleanup.
-            registered_ach_ids.append(aid)
-        except Exception:
-            pass
         renpy.save_persistent()
         return True
 
@@ -73,6 +95,9 @@ init python:
         bottom-right (like the consequence notify but for achievements).
         """
         ach = persistent.achievements.get(aid)
+        if not ach and aid in achievement_registry:
+            persistent.achievements[aid] = achievement_registry[aid].copy()
+            ach = persistent.achievements[aid]
         if not ach:
             return False
         if ach.get('unlocked'):
@@ -86,6 +111,7 @@ init python:
         ach['discovered'] = True
         import time
         ach['unlocked_time'] = time.time()
+        play_achievement_unlock_sound()
         try:
             renpy.save_persistent()
             renpy.log("Unlocked achievement saved: %s -> %r" % (aid, {'unlocked': ach.get('unlocked'), 'hide_desc': ach.get('hide_desc'), 'hide_name': ach.get('hide_name'), 'discovered': ach.get('discovered')}))
@@ -100,11 +126,11 @@ init python:
             # Enqueue the notification; a watcher screen will display items when
             # possible. We avoid calling screens directly from other screens.
             try:
-                achievement_notify_queue.append((ach['name'], ach['desc'], ach.get('icon'), 3))
+                achievement_notify_queue.append((achievement_text(ach['name']), achievement_text(ach['desc']), ach.get('icon'), 3))
             except Exception:
                 # Fallback: try to call screen if queue unavailable
                 try:
-                    renpy.call_screen('achievement_notify', name=ach['name'], desc=ach['desc'], icon=ach.get('icon'))
+                    renpy.call_screen('achievement_notify', name=achievement_text(ach['name']), desc=achievement_text(ach['desc']), icon=ach.get('icon'))
                 except Exception:
                     pass
         return True
@@ -113,21 +139,57 @@ init python:
         ach = persistent.achievements.get(aid)
         return bool(ach and ach.get('unlocked'))
 
+    def play_achievement_unlock_sound():
+        try:
+            if achievement_unlock_sound and renpy.loadable(achievement_unlock_sound):
+                renpy.sound.play(achievement_unlock_sound, channel="sound")
+        except Exception:
+            pass
+
+    def achievement_text(text):
+        return game_tr(text)
+
+    def achievement_icon_exists(icon):
+        if not icon:
+            return False
+        try:
+            if renpy.loadable(icon):
+                return True
+            if icon.startswith("game/") and renpy.loadable(icon[5:]):
+                return True
+        except Exception:
+            pass
+        return False
+
     def list_achievements():
         # Return a list of (id, data) tuples for iteration in screens.
-        return list(persistent.achievements.items())
+        items = []
+        seen = set()
+        for aid in registered_ach_ids:
+            if aid in seen:
+                continue
+            meta = achievement_registry.get(aid, {})
+            data = persistent.achievements.get(aid, meta).copy()
+            for key in ('name', 'desc', 'icon'):
+                if key in meta:
+                    data[key] = meta[key]
+            if not data.get('unlocked'):
+                for key in ('hide_desc', 'hide_name'):
+                    if key in meta:
+                        data[key] = meta[key]
+            data['name'] = achievement_text(data.get('name', ''))
+            data['desc'] = achievement_text(data.get('desc', ''))
+            items.append((aid, data))
+            seen.add(aid)
+        return items
 
     # Debug helper: report which icon files are missing (writes to log).
     def debug_report_icons():
         missing = {}
         try:
-            import os
             for aid, data in persistent.achievements.items():
                 icon = data.get('icon')
-                if icon:
-                    ok = os.path.exists(icon)
-                else:
-                    ok = False
+                ok = achievement_icon_exists(icon)
                 if not ok:
                     missing[aid] = icon
                     renpy.log("Achievement icon missing: %s -> %s" % (aid, repr(icon)))
@@ -231,15 +293,19 @@ init python:
             return []
 # Pre-register a couple example achievements (you can add more in future code)
 init python:
-    add_achievement('first_ach', "Não posso esquecer", "Eu preciso lembrar", "game/images/achievements/primeiraconquista.png", hide_desc=True, hide_name=False)
+    add_achievement('first_ach', "Não posso esquecer", "Eu preciso lembrar", "game/images/achievements/", hide_desc=True, hide_name=False)
     add_achievement('estella', "Curioso", "Que barulho é esse?", "game/images/achievements/estella.png", hide_desc=False, hide_name=True)
     add_achievement('mingau', "Mingau", "Alimente o Mingau. É só isso mesmo...", "game/images/achievements/mingal.png", hide_desc=True, hide_name=False)
     add_achievement('trem_2', "Por um Tris", "Acho que você vai precisar de um pouco de descanso antes da prova...", "game/images/achievements/trem.png", hide_desc=False, hide_name=True)
-    add_achievement('trem_3', "Pare esse trem", "Perder um trêm é sempre díficil, mas sempre tem um novo", "game/images/achievements/trem2.png", hide_desc=True, hide_name=False)
+    add_achievement('trem_3', "Pare esse trem", "Perder um trem é sempre difícil, mas sempre tem um novo", "game/images/achievements/trem2.png", hide_desc=True, hide_name=False)
     add_achievement('trem', "Bem na hora", "Será que tem lugar vago?", "game/images/achievements/trem3.png", hide_desc=True, hide_name=False)
     add_achievement('darkpassager', "Passageiro Sombrio", "Esse sentimento é bom, não é Kioku?", "game/images/achievements/darkpassager.png", hide_desc=False, hide_name=True)
     add_achievement('killerpassager', "Passageiro Assassino", "Esse sentimento é ruim Kioku?", "game/images/achievements/killerpassager.png", hide_desc=False, hide_name=True)
-    
+    add_achievement('natural_20', "Milagre Estatístico", "Isso não acontece duas vezes... certo?", None, hide_desc=False, hide_name=True)
+    add_achievement('natural_20_twice', "Dado Viciado?", "Você trouxe esse dado de casa?", None, hide_desc=True, hide_name=False)
+    add_achievement('natural_1', "Lei de Murphy", "Claro. Tinha que ser agora.", None, hide_desc=False, hide_name=True)
+    add_achievement('fim', "lembranca", "BYMOUO FCBPQAT JE R OEWLAS UEVZAC S BBJSNFO AEDB KRNU", None, hide_desc=True, hide_name=True)
+    add_achievement('bocasanta', "Boca Santa", "Você tinha que falar né Kioku?", None, hide_desc=False, hide_name=True)
     
     # Note: removed automatic purge of unregistered persistent achievements.
     # to avoid accidentally deleting achievements the developer expects to keep.
@@ -314,6 +380,8 @@ screen achievements():
     frame:
         xalign 0.5
         yalign 0.5
+        xsize 1180
+        ysize 650
         xpadding 14
         ypadding 14
         background Solid("#000c")
@@ -323,6 +391,8 @@ screen achievements():
             text _("Feche com ESC ou clique fora.") size 18 color "#ddd"
 
             viewport id "ach_view" draggable True mousewheel True:
+                xsize 1120
+                ysize 520
                 vbox:
                     spacing 10
                     # iterate achievements
@@ -331,11 +401,7 @@ screen achievements():
                     for aid, data in ach_list:
                         python:
                             icon_path = data.get('icon')
-                            try:
-                                import os
-                                icon_ok = bool(icon_path and os.path.exists(icon_path))
-                            except Exception:
-                                icon_ok = False
+                            icon_ok = achievement_icon_exists(icon_path)
 
                         if data.get('unlocked'):
                             hbox:
@@ -349,13 +415,11 @@ screen achievements():
                                     # Unlocked always shows the real name. Descriptions
                                     # are shown unless explicitly hidden (and will be
                                     # cleared on unlock by `unlock_achievement`).
-                                    text data.get('name') size 28 color "#fff"
-                                    if not data.get('hide_desc'):
-                                        text data.get('desc') size 18 color "#ddd"
-                        elif data.get('discovered'):
-                            # Discovered but not unlocked: reveal fields according
-                            # to the per-achievement hide flags, substituting
-                            # question marks where a field is hidden.
+                                    text achievement_text(data.get('name')) size 28 color "#fff"
+                                    text achievement_text(data.get('desc')) size 18 color "#ddd"
+                        else:
+                            # Locked achievements reveal fields according to the
+                            # per-achievement hide flags.
                             hbox:
                                 spacing 12
                                 frame background Solid("#555") xminimum 64 xmaximum 64 yminimum 64 ymaximum 64:
@@ -364,20 +428,11 @@ screen achievements():
                                     if data.get('hide_name'):
                                         text "????????" size 28 color "#999"
                                     else:
-                                        text data.get('name') size 28 color "#999"
+                                        text achievement_text(data.get('name')) size 28 color "#999"
                                     if data.get('hide_desc'):
                                         text "????????" size 18 color "#777"
                                     else:
-                                        text data.get('desc') size 18 color "#ddd"
-                        else:
-                            # Not discovered: both name and description hidden
-                            hbox:
-                                spacing 12
-                                frame background Solid("#555") xminimum 64 xmaximum 64 yminimum 64 ymaximum 64:
-                                    text "🔒" xalign 0.5 yalign 0.5 size 34
-                                vbox:
-                                    text "????????" size 28 color "#999"
-                                    text "????????????????????????" size 16 color "#777"
+                                        text achievement_text(data.get('desc')) size 18 color "#ddd"
 
     # allow closing
     key "dismiss" action Return()
@@ -405,11 +460,7 @@ screen achievement_notify(name, desc, icon=None, duration=3):
 
     python:
         icon_ok = False
-        try:
-            import os
-            icon_ok = bool(icon and os.path.exists(icon))
-        except Exception:
-            icon_ok = False
+        icon_ok = achievement_icon_exists(icon)
 
     frame:
         at ach_slide_in
@@ -428,8 +479,8 @@ screen achievement_notify(name, desc, icon=None, duration=3):
                     frame background Solid("#f1c40f") xminimum 56 xmaximum 56 yminimum 56 ymaximum 56:
                         null
                 vbox:
-                    text name size 26 color "#fff" bold True at ach_pulse
-                    text desc size 18 color "#ddd"
+                    text achievement_text(name) size 26 color "#fff" bold True at ach_pulse
+                    text achievement_text(desc) size 18 color "#ddd"
 
     timer duration action Return()
 
@@ -448,13 +499,13 @@ screen descricao_adicionada_notify(nome, duration=3):
         background Solid("#000c")
         vbox:
             spacing 6
-            text "Novas informações de %s foram adicionadas" % nome size 22 color "#fff" bold True
+            text game_tr_format("Novas informações de {nome} foram adicionadas", nome=game_tr(nome)) size 22 color "#fff" bold True
 
     timer duration action Return()
 
 
 # Notification for diary updates/unlocks (top-left)
-screen diario_notify(nome=None, duration=3):
+screen diario_notify(nome=None, duration=1.25):
     modal False
     zorder 461
 
@@ -468,9 +519,9 @@ screen diario_notify(nome=None, duration=3):
         vbox:
             spacing 6
             if nome:
-                text "Nota atualizada no Diário — %s" % nome size 22 color "#fff" bold True
+                text game_tr_format("Nota atualizada no Diário - {nome}", nome=game_tr(nome)) size 30 color "#faf7f7"
             else:
-                text "Nota atualizada no Diário" size 22 color "#fff" bold True
+                text game_tr("Nota atualizada no Diário") size 30 color "#faf7f7"
 
     timer duration action Return()
 
@@ -497,11 +548,7 @@ screen achievement_queue_watcher():
                     spacing 8
                     python:
                         icon_ok = False
-                        try:
-                            import os
-                            icon_ok = bool(icon and os.path.exists(icon))
-                        except Exception:
-                            icon_ok = False
+                        icon_ok = achievement_icon_exists(icon)
 
                     if icon_ok:
                         add icon xysize (56,56)
@@ -509,8 +556,8 @@ screen achievement_queue_watcher():
                         frame background Solid("#f1c40f") xminimum 56 xmaximum 56 yminimum 56 ymaximum 56:
                             null
                     vbox:
-                        text name size 26 color "#fff" bold True at ach_pulse
-                        text desc size 18 color "#ddd"
+                        text achievement_text(name) size 26 color "#fff" bold True at ach_pulse
+                        text achievement_text(desc) size 18 color "#ddd"
 
         # Remove after duration
         timer duration action Function(pop_achievement_notify)
